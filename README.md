@@ -1,14 +1,30 @@
-# CTWM
+# CTWM: Claude's Tab Window Manager for the X Window System
+
+## NOTE:  This is a variant of the original [CTWM][CTWM].
+
+This variant is maintained as a fork of the original.
+
+This CTWM uses BSD Make for building, and it includes a few minor bug
+fixes and other enhancements.  See the Git history.  Further fixes or
+enhancements are welcome.
+
+This fork is maintained in [robohack's GitHub][GHRC] by Greg A. Woods.
+
+Motto:  Write Portable C without complicating the build!
+
+See, e.g.: https://nullprogram.com/blog/2017/03/30/
+
 
 ## Intro
 
-ctwm is an extension to twm, originally written by Claude Lecommandeur
-that support multiple virtual screens, and a lot of other goodies.
+Ctwm is an extension to twm, and was originally enhanced by Claude
+Lecommandeur.  It supports multiple virtual screens, and a lot of other
+goodies.
 
 You can use and manage up to 32 virtual screens called workspaces.  You
 swap from one workspace to another by clicking on a button in an
 optionnal panel of buttons (the workspace manager) or by invoking a
-function.
+function either by keystroke or from a context menu.
 
 You can customize each workspace by choosing different colors, names and
 pixmaps for the buttons and background root windows.
@@ -40,94 +56,11 @@ read it.
 
 ## Configuration
 
-ctwm is build using CMake, which does its best to root around in your
-system to find the pieces the build needs.  Occasionally though you might
-have to give it some help, or change the defaults of what features are
-expected.
+ctwm is built using a very simple BSD Makefile.
 
 In the common case, the included Makefile will do the necessary
 invocations, and you won't need to worry about it; just run a normal
-`make ; make install` invocation.  If you need to make alterations
-though, you may have to invoke cmake manually and set various params on
-the command line (cmake also has various GUI configurators, not covered
-here).
-
-The following parameters control configuration/installation locations:
-
-CMAKE_INSTALL_PREFIX
-:       Where paths are based.  This is a standard cmake var.  Referred
-        to as `$PREFIX` below.
-
-ETCDIR
-:       Where ctwm will look for a `system.ctwmrc` to fall back to if it
-        doesn't find a per-user config.  Nothing is installed here by
-        default.
-        (default: `$PREFIX/etc`)
-
-BINDIR
-:       Where the ctwm binary is installed.
-        (default: `$PREFIX/bin`)
-
-DATADIR
-:       Where run-time data like image pixmaps are installed.
-        (default: `$PREFIX/share/ctwm`)
-
-MANDIR
-:       Base directory under which manpage dirs like `man1` and `man2`
-        live.
-        (default: `$PREFIX/share/man` or `$PREFIX/man`, whichever is
-        found first)
-
-DOCDIR
-:       Where non-manpage docs are installed.
-        (default: `$PREFIX/share/doc/ctwm`)
-
-EXAMPLEDIR
-:       Where various example files get installed.  These include the
-        system.ctwmrc that is compiled into ctwm as a fallback.
-        (default: `$PREFIX/share/examples/ctwm`)
-
-
-The following parameters control the features/external libs that are
-available.  The defaults can be changed by passing parameters like
-`-DUSE_XYZ=OFF` to the cmake command line.
-
-USE_M4
-:       Enables use of m4(1) for preprocessing config files at runtime.
-        If your m4 is called something other than `m4` or `gm4`, you may
-        need to also set M4_CMD to point at it.
-        (**ON** by default)
-
-USE_XPM
-:       Enables the use of XPM images.  Disable if libxpm isn't present,
-        which is just barely possible on very old systems.
-        (**ON** by default)
-
-USE_JPEG
-:       Enables the use of jpeg images via libjpeg.  Disable if libjpeg
-        isn't present.
-        (**ON** by default)
-
-USE_EWMH
-:       Enables EWMH support.
-        (**ON** by default)
-
-USE_RPLAY
-:       Build with sound support via librplay.  `USE_SOUND` is a still
-        valid but deprecated alias for this, and will give a warning.
-        (**OFF** by default)
-
-USE_XRANDR
-:       Enables the use of multi-monitors of different sizes via
-        libXrandr.  Disable if libXrandr isn't present or is older than 1.5.
-        (**ON** by default)
-
-
-Additional vars you might need to set:
-
-M4_CMD
-:       Name of m4 program, if it's not `m4` or `gm4`, or full path to it
-        if it's not in your `$PATH`.
+`make ; make install` invocation.
 
 
 ## Building
@@ -135,46 +68,43 @@ M4_CMD
 In the simple case, the defaults should work.  Most modern or semi-modern
 systems should fall into this.
 
-    funny prompt> make
+    $ make
 
-If you need to add special config, you'll have to pass extra bits to
-cmake via an invocation like
+You can put the build objects in another directory easily enough:
 
-    funny prompt> make CMAKE_EXTRAS="-DUSE_XPM=OFF -DM4_CMD=superm4"
+    $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make obj
+    $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make
 
-Though in more complicated cases it may be simpler to just invoke cmake
-directly:
 
-    funny prompt> ( cd build ; cmake -DUSE_XPM=OFF -DM4_CMD=superm4 .. )
-    funny prompt> make
-
-### Required Libs
+### Required Libraries
 
 ctwm requires various X11 libraries to be present.  That list will
 generally include libX11, libXext, libXmu, libXt, libSM, and libICE.
-Depending on your configuration, you may require extra libs as discussed
-above (libXpm, libjpeg, and libXrandr are included in the default
-config).  If you're on a system that separates header files etc. from the
-shared lib itself (many Linux dists do), you'll probably need -devel or
-similarly named packages installed for each of them as well.
 
+Depending on your host environment, you may require extra libraries,
+such as libXpm, libjpeg, and libXrandr.  These can very easily be
+installed with [pkgsrc][pkgsrc]
 
 
 ## Installation
 
-    funny prompt> make install
+Installation as root is easy:
+
+    # make install
+
 
 ### Packaging
 
-The CMake build system includes sufficient info for CPack to be used to
-build RPM (and presumably, though not tested, DEB) packages.  As a quick
-example of usage:
+BSD Makes generally support ${DESTDIR} installs -- to create a binary
+distribution archive just do the following:
 
-    funny prompt> make
-    funny prompt> (cd build && cpack -G RPM)
+    $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make obj
+    $ MAKEOBJDIRPREFIX=$(pwd -P)/build make
+    $ mkdir dist; MAKEOBJDIRPREFIX=$(pwd -P)/build make DESTDIR=$(pwd -P) install
 
 
 ## Dev and Support
+
 
 ### Mailing list
 
@@ -182,11 +112,10 @@ There is a mailing list for discussions: <ctwm@ctwm.org>.  Subscribe by
 sending a mail with the subject "subscribe ctwm" to
 <minimalist@ctwm.org>.
 
+
 ### Repository
 
-ctwm development uses breezy (see <https://www.breezy-vcs.org/>) for
-version control.  The code is available on launchpad as `lp:ctwm`.  See
-<https://launchpad.net/ctwm> for more details.
+This CTWM is maintained in [robohack's GitHub][GHRC] by Greg A. Woods.
 
 
 ## Further information
@@ -195,6 +124,6 @@ Additional information can be found from the project webpage, at
 <https://www.ctwm.org/>.
 
 
-{>>
- vim:expandtab:ft=markdown:
-<<}
+[GHRC]: https://github.com/robohack/ctwm-mirror/
+[CTWM]: https://github.com/fullermd/ctwm-mirror/
+[pkgsrc]: https://pkgsrc.org/
