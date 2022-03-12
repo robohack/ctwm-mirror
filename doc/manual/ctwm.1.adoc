@@ -441,8 +441,8 @@ preceding example would enable autoraise on windows named ``emacs'' as
 well as any `xterm` (since they are of class ``XTerm'') or xmh windows
 (which are of class ``Xmh'').
 
-String arguments that are interpreted as filenames (see the `Pixmaps`,
-`Cursors`, and `IconDirectory` below) will
+String arguments that are interpreted as filenames (including colon-separated paths; see the `Pixmaps`,
+`Cursors`, `IconDirectory`, and `PixmapDirectory` below) will
 prepend the user's directory
 (specified by the `HOME` environment variable) if the first character is a
 tilde (~).  If, instead, the first character is a colon (:), the name is
