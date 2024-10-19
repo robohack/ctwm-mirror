@@ -9,12 +9,16 @@
 #include <unistd.h>
 
 #include "animate.h"
+#ifdef CAPTIVE
 #include "captive.h"
+#endif
 #include "colormaps.h"
 #include "ctwm_atoms.h"
 #include "ctwm_shutdown.h"
 #include "screen.h"
+#ifdef SESSION
 #include "session.h"
+#endif
 #ifdef SOUNDS
 # include "sound.h"
 #endif
@@ -126,6 +130,7 @@ RestoreWinConfig(TwmWindow *tmp)
 	}
 
 
+#ifdef WINBOX
 	// If it's in a WindowBox, reparent the frame back up to our real root
 	if(tmp->winbox && tmp->winbox->twmwin && tmp->frame) {
 		int xbox, ybox;
@@ -139,6 +144,7 @@ RestoreWinConfig(TwmWindow *tmp)
 			ReparentWindow(dpy, tmp, WinWin, Scr->Root, xbox, ybox);
 		}
 	}
+#endif
 
 
 	// Restore the original window border if there were one
@@ -225,10 +231,12 @@ DoShutdown(void)
 	// Clean up our list of workspaces
 	XDeleteProperty(dpy, Scr->Root, XA_WM_WORKSPACESLIST);
 
+#ifdef CAPTIVE
 	// Shut down captive stuff
 	if(CLarg.is_captive) {
 		RemoveFromCaptiveList(Scr->captivename);
 	}
+#endif
 
 	// Close up shop
 	XCloseDisplay(dpy);
@@ -251,10 +259,10 @@ DoRestart(Time t)
 	RestoreForShutdown(t);
 	XSync(dpy, 0);
 
+#ifdef SESSION
 	// Shut down session management connection cleanly.
-	if(smcConn) {
-		SmcCloseConnection(smcConn, 0, NULL);
-	}
+	shutdown_session();
+#endif
 
 	// Re-run ourself
 	fprintf(stderr, "%s:  restarting:  %s\n", ProgramName, *Argv);

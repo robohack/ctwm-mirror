@@ -455,7 +455,9 @@ static const TwmKeyword keytable[] = {
 	{ "usethreedmenus",         KEYWORD, kw0_Use3DMenus },
 	{ "usethreedtitles",        KEYWORD, kw0_Use3DTitles },
 	{ "usethreedwmap",          KEYWORD, kw0_Use3DWMap },
+#ifdef VSCREEN
 	{ "virtualscreens",         VIRTUAL_SCREENS, 0 },
+#endif
 	{ "w",                      WINDOW, 0 },
 	{ "wait",                   WAITC, 0 },
 	{ "warpcursor",             WARP_CURSOR, 0 },
@@ -465,7 +467,9 @@ static const TwmKeyword keytable[] = {
 	{ "warpunmapped",           KEYWORD, kw0_WarpUnmapped },
 	{ "west",                   GRAVITY, GRAV_WEST },
 	{ "window",                 WINDOW, 0 },
+#ifdef WINBOX
 	{ "windowbox",              WINDOW_BOX, 0 },
+#endif
 	{ "windowfunction",         WINDOW_FUNCTION, 0 },
 	{ "windowgeometries",       WINDOW_GEOMETRIES, 0 },
 	{ "windowregion",           WINDOW_REGION, 0 },

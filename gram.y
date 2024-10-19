@@ -30,7 +30,9 @@
 #include "otp.h"
 #include "iconmgr.h"
 #include "icons.h"
+#ifdef WINBOX
 #include "windowbox.h"
+#endif
 #include "functions_defs.h"
 #include "list.h"
 #include "util.h"
@@ -152,7 +154,9 @@ stmt		: error
 		  win_list
 
 		| WINDOW_BOX string string {
+#ifdef WINBOX
 		      curplist = addWindowBox ($2, $3);
+#endif
 		  }
 		  win_list
 
@@ -319,7 +323,14 @@ stmt		: error
 		| AUTO_POPUP		{ Scr->AutoPopup = true; }
 		| AUTO_POPUP		{ curplist = &Scr->AutoPopupL; }
 		  win_list
-		| DONT_SAVE		{ curplist = &Scr->DontSave; }
+		| DONT_SAVE		{
+#ifndef SESSION
+			twmrc_error_prefix();
+			fprintf(stderr, "DontSave ignored; session support "
+					"disabled.\n");
+#endif
+				curplist = &Scr->DontSave;
+			}
 		  win_list
 		| NO_ICON_TITLE		{ curplist = &Scr->NoIconTitle; }
 		  win_list
@@ -767,7 +778,11 @@ vscreen_geom_entries	: /* Empty */
 		| vscreen_geom_entries vscreen_geom_entry
 		;
 
-vscreen_geom_entry	: string { AddToList (&Scr->VirtualScreens, $1, ""); }
+vscreen_geom_entry	: string {
+#ifdef VSCREEN
+				   AddToList (&Scr->VirtualScreens, $1, "");
+#endif
+				   }
 		;
 
 

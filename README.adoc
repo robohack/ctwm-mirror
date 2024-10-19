@@ -14,8 +14,9 @@ Motto:  Write Portable C without complicating the build!
 
 See, e.g.: https://nullprogram.com/blog/2017/03/30/
 
+= CTWM
 
-## Intro
+== Intro
 
 Ctwm is an extension to twm, and was originally enhanced by Claude
 Lecommandeur.  It supports multiple virtual screens, and a lot of other
@@ -54,7 +55,7 @@ Many useful information bits are only in the CHANGES.md file, so please
 read it.
 
 
-## Configuration
+== Configuration
 
 ctwm is built using a very simple BSD Makefile.
 
@@ -86,14 +87,14 @@ such as libXpm, libjpeg, and libXrandr.  These can very easily be
 installed with [pkgsrc][pkgsrc]
 
 
-## Installation
+== Installation
 
 Installation as root is easy:
 
     # make install
 
 
-### Packaging
+=== Packaging
 
 BSD Makes generally support ${DESTDIR} installs -- to create a binary
 distribution archive just do the following:
@@ -103,22 +104,20 @@ distribution archive just do the following:
     $ mkdir dist; MAKEOBJDIRPREFIX=$(pwd -P)/build make DESTDIR=$(pwd -P) install
 
 
-## Dev and Support
+== Dev and Support
 
-
-### Mailing list
+=== Mailing list
 
 There is a mailing list for discussions: <ctwm@ctwm.org>.  Subscribe by
 sending a mail with the subject "subscribe ctwm" to
 <minimalist@ctwm.org>.
 
-
-### Repository
+=== Repository
 
 This CTWM is maintained in [robohack's GitHub][GHRC] by Greg A. Woods.
 
 
-## Further information
+== Further information
 
 Additional information can be found from the project webpage, at
 <https://www.ctwm.org/>.

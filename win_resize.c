@@ -197,9 +197,11 @@ void StartResize(XEvent *evp, TwmWindow *tmp_win,
 	                 ButtonMotionMask | PointerMotionHintMask;
 
 	grabwin = Scr->Root;
+#ifdef WINBOX
 	if(tmp_win->winbox) {
 		grabwin = tmp_win->winbox->window;
 	}
+#endif
 	XGrabPointer(dpy, grabwin, True, resizeGrabMask,
 	             GrabModeAsync, GrabModeAsync, grabwin, cursor, CurrentTime);
 
@@ -947,18 +949,20 @@ void fullzoom(TwmWindow *tmp_win, int func)
 		RArea area, finalArea = RAreaInvalid();
 		int frame_bw_times_2;
 
+#ifdef WINBOX
 		if(tmp_win->winbox) {
 			XWindowAttributes winattrs;
 			if(XGetWindowAttributes(dpy, tmp_win->winbox->window, &winattrs)) {
 				borderedLayout = RLayoutNew(
 				                         RAreaListNew(1,
 				                                      RAreaNew(winattrs.x,
-				                                                      winattrs.y,
-				                                                      winattrs.width,
-				                                                      winattrs.height),
+				                                              winattrs.y,
+				                                              winattrs.width,
+				                                              winattrs.height),
 				                                      NULL));
 			}
 		}
+#endif
 		if(borderedLayout == NULL) {
 			borderedLayout = Scr->BorderedLayout;
 		}

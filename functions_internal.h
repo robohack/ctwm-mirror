@@ -102,9 +102,11 @@ DFHANDLER(upworkspace);
 DFHANDLER(downworkspace);
 
 
+#ifdef CAPTIVE
 /* functions_captive.c */
 DFHANDLER(adoptwindow);
 DFHANDLER(hypermove);
+#endif
 
 
 /* functions_identify.c */
@@ -165,7 +167,9 @@ DFHANDLER(quit);
 DFHANDLER(restart);
 DFHANDLER(beep);
 DFHANDLER(trace);
+#ifdef WINBOX
 DFHANDLER(fittocontent);
+#endif
 DFHANDLER(showbackground);
 DFHANDLER(raiseicons);
 DFHANDLER(rescuewindows);

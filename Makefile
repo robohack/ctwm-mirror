@@ -85,6 +85,28 @@ SRCS+=	ext/repl_str.c
 SUBDIR+=	ext
 .endif
 
+
+# Build documentation files
+DOC_FILES=README.html CHANGES.html
+docs: ${DOC_FILES}
+docs_clean doc_clean:
+	rm -f ${DOC_FILES}
+
+.SUFFIXES: ${.SUFFIXES} .html .adoc
+.adoc.html:
+	asciidoctor -o ${@} ${<}
+
+
+# asciidoc files
+UMAN=doc/manual
+adocs:
+	(cd ${UMAN} && make all_set_version)
+adocs_pregen:
+	(cd ${UMAN} && make all)
+adoc_clean:
+	(cd ${UMAN} && make clean)
+
+
 # Generated files
 #
 SRCS+=	ctwm_atoms.c

@@ -48,12 +48,18 @@
 #include "icons.h"
 #include "iconmgr.h"
 #include "list.h"
+#ifdef SESSION
 #include "session.h"
+#endif
 #include "occupation.h"
 #include "otp.h"
 #include "cursor.h"
+#ifdef WINBOX
 #include "windowbox.h"
+#endif
+#ifdef CAPTIVE
 #include "captive.h"
+#endif
 #ifdef XRANDR
 #include "xrandr.h"
 #endif
@@ -88,8 +94,10 @@ ScreenInfo *Scr = NULL;         /* the cur and prev screens */
 int PreviousScreen;             /* last screen that we were on */
 static bool cfgerrs = false;    ///< Whether there were config parsing errors
 
+#ifdef CAPTIVE
 static Window CreateCaptiveRootWindow(int x, int y,
                                       unsigned int width, unsigned int height);
+#endif
 ScreenInfo *InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
                            unsigned int crootw, unsigned int crooth);
 static bool MappedNotOverride(Window w);
@@ -189,9 +197,14 @@ ctwm_main(int argc, char *argv[])
 	/* If we get this far, it was all good */
 
 	/* Some clargs mean we're not actually trying to take over the screen */
-	if(CLarg.cfgchk || CLarg.is_captive) {
+	if(CLarg.cfgchk) {
 		takeover = false;
 	}
+#ifdef CAPTIVE
+	if(CLarg.is_captive) {
+		takeover = false;
+	}
+#endif
 
 	/* And some mean we actually don't care if we lack an X server */
 	if(CLarg.cfgchk) {
@@ -265,10 +278,12 @@ ctwm_main(int argc, char *argv[])
 	}
 
 
+#ifdef SESSION
 	// Load session stuff
 	if(CLarg.restore_filename) {
 		ReadWinConfigFile(CLarg.restore_filename);
 	}
+#endif
 
 
 	if(dpy) {
@@ -358,7 +373,11 @@ ctwm_main(int argc, char *argv[])
 		/*
 		 * First, setup the root window for the screen.
 		 */
-		if(CLarg.is_captive) {
+		if(0) {
+			// Dummy
+		}
+#ifdef CAPTIVE
+		else if(CLarg.is_captive) {
 			// Captive ctwm.  We make a fake root.
 			XWindowAttributes wa;
 			if(CLarg.capwin && XGetWindowAttributes(dpy, CLarg.capwin, &wa)) {
@@ -379,6 +398,7 @@ ctwm_main(int argc, char *argv[])
 				croot = CreateCaptiveRootWindow(crootx, crooty, crootw, crooth);
 			}
 		}
+#endif
 		else {
 			// Normal; get the real display's root.
 			crootx = 0;
@@ -470,6 +490,7 @@ ctwm_main(int argc, char *argv[])
 		// Now that we have d_depth...
 		Scr->XORvalue = (((unsigned long) 1) << Scr->d_depth) - 1;
 
+#ifdef CAPTIVE
 		// Init captive bits.  We stick this name into m4 props, so do it
 		// before config processing.
 		if(CLarg.is_captive) {
@@ -481,6 +502,7 @@ ctwm_main(int argc, char *argv[])
 				                   NULL, 0, NULL, NULL, NULL);
 			}
 		}
+#endif
 
 
 		// Init some colormap bits.  We need this before we get into the
@@ -678,9 +700,11 @@ ctwm_main(int argc, char *argv[])
 		 * mirroring our real root.
 		 */
 		InitVirtualScreens(Scr);
+#ifdef VSCREEN
 #ifdef EWMH
 		EwmhInitVirtualRoots(Scr);
 #endif /* EWMH */
+#endif // vscreen
 
 		// Setup WSM[s] (per-vscreen).  This also sets up the about the
 		// workspaces for each vscreen and which is currently displayed.
@@ -851,8 +875,10 @@ ctwm_main(int argc, char *argv[])
 		// menus made.
 		MakeWorkspacesMenu();
 
+#ifdef WINBOX
 		// setup WindowBox's
 		createWindowBoxes();
+#endif
 
 		// Initialize Xrm stuff; things with setting occupation etc use
 		// Xrm bits.
@@ -1034,8 +1060,10 @@ ctwm_main(int argc, char *argv[])
 		exit(1);
 	}
 
+#ifdef SESSION
 	// Hook up session
 	ConnectToSessionManager(CLarg.client_id);
+#endif
 
 #ifdef SOUNDS
 	// Announce ourselves
@@ -1101,10 +1129,17 @@ InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
 	// derived dimension-related bits.
 	scr->screen = scrnum;
 	scr->XineramaRoot = scr->Root = croot;
-	scr->rootx = scr->crootx = crootx;
-	scr->rooty = scr->crooty = crooty;
-	scr->rootw = scr->crootw = crootw;
-	scr->rooth = scr->crooth = crooth;
+	scr->rootx = crootx;
+	scr->rooty = crooty;
+	scr->rootw = crootw;
+	scr->rooth = crooth;
+
+#ifdef CAPTIVE
+	scr->crootx = crootx;
+	scr->crooty = crooty;
+	scr->crootw = crootw;
+	scr->crooth = crooth;
+#endif
 
 	// Don't allow icon titles wider than the screen
 	scr->MaxIconTitleWidth = scr->rootw;
@@ -1328,6 +1363,7 @@ InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
 
 
 
+#ifdef CAPTIVE
 /**
  * Create a new window to use for a captive ctwm.
  */
@@ -1355,6 +1391,7 @@ CreateCaptiveRootWindow(int x, int y,
 	XMapWindow(dpy, ret);
 	return (ret);
 }
+#endif
 
 
 

@@ -436,7 +436,7 @@ HandleFocusOut(void)
 /*
  * Only sent if SubstructureNotifyMask is selected on the (root) window.
  */
-void HandleCirculateNotify()
+void HandleCirculateNotify(void)
 {
 	VirtualScreen *vs;
 #ifdef DEBUG_EVENTS
@@ -2230,11 +2230,13 @@ void HandleMotionNotify(void)
 		}
 
 		Tmp_win = GetTwmWindow(ResizeWindow);
+#ifdef WINBOX
 		if(Tmp_win && Tmp_win->winbox) {
 			XTranslateCoordinates(dpy, Scr->Root, Tmp_win->winbox->window,
 			                      Event.xmotion.x_root, Event.xmotion.y_root,
 			                      &(Event.xmotion.x_root), &(Event.xmotion.y_root), &JunkChild);
 		}
+#endif
 		DoResize(Event.xmotion.x_root, Event.xmotion.y_root, Tmp_win);
 	}
 	else if(Scr->BorderCursors && Tmp_win && Event.xany.window == Tmp_win->frame) {
@@ -2267,11 +2269,13 @@ void HandleButtonRelease(void)
 		MoveOutline(Scr->XineramaRoot, 0, 0, 0, 0, 0, 0);
 
 		Tmp_win = GetTwmWindow(DragWindow);
+#ifdef WINBOX
 		if(Tmp_win->winbox) {
 			XTranslateCoordinates(dpy, Scr->Root, Tmp_win->winbox->window,
 			                      Event.xbutton.x_root, Event.xbutton.y_root,
 			                      &(Event.xbutton.x_root), &(Event.xbutton.y_root), &JunkChild);
 		}
+#endif
 		if(DragWindow == Tmp_win->frame) {
 			xl = Event.xbutton.x_root - DragX - Tmp_win->frame_bw;
 			yt = Event.xbutton.y_root - DragY - Tmp_win->frame_bw;
@@ -2319,6 +2323,7 @@ void HandleButtonRelease(void)
 
 		CurrentDragX = xl;
 		CurrentDragY = yt;
+#ifdef VSCREEN
 		/*
 		 * sometimes getScreenOf() replies with the wrong window when moving
 		 * y to a negative number.  Need to figure out why... [XXX]
@@ -2352,6 +2357,7 @@ void HandleButtonRelease(void)
 				yt = desty;
 			}
 		}
+#endif
 		if(DragWindow == Tmp_win->frame) {
 			SetupWindow(Tmp_win, xl, yt,
 			            Tmp_win->frame_width, Tmp_win->frame_height, -1);
@@ -2824,6 +2830,7 @@ void HandleButtonPress(void)
 				                      &chwin);
 				Event.xbutton.window = Tmp_win->w;
 
+#ifdef WINBOX
 				if(Tmp_win->iswinbox && chwin) {
 					int x, y;
 					TwmWindow *wtmp;
@@ -2837,6 +2844,7 @@ void HandleButtonPress(void)
 						Tmp_win = wtmp;
 					}
 				}
+#endif
 				Context = C_WINDOW;
 			}
 			else if(Event.xbutton.subwindow
@@ -2874,7 +2882,6 @@ void HandleButtonPress(void)
 	 */
 	if(RootFunction != 0) {
 		if(Event.xany.window == Scr->Root) {
-			Window win;
 			int x, y;
 
 			/* if the window was the Root, we don't know for sure it
@@ -2888,7 +2895,9 @@ void HandleButtonPress(void)
 
 			if(Event.xany.window != 0 &&
 			                (Tmp_win = GetTwmWindow(Event.xany.window))) {
+#ifdef WINBOX
 				if(Tmp_win->iswinbox) {
+					Window win;
 					XTranslateCoordinates(dpy, Scr->Root, Event.xany.window,
 					                      x, y, &x, &y, &win);
 					XTranslateCoordinates(dpy, Event.xany.window, win,
@@ -2897,6 +2906,7 @@ void HandleButtonPress(void)
 						Event.xany.window = win;
 					}
 				}
+#endif
 			}
 			if(Event.xany.window == 0 ||
 			                !(Tmp_win = GetTwmWindow(Event.xany.window))) {
@@ -3111,8 +3121,13 @@ void HandleEnterNotify(void)
 		for(vs = Scr->vScreenList; vs != NULL; vs = vs->next) {
 			if(ewp->window == vs->window) {
 				Scr->Root  = vs->window;
+#ifdef CAPTIVE
 				Scr->rootx = Scr->crootx + vs->x;
 				Scr->rooty = Scr->crooty + vs->y;
+#else
+				Scr->rootx = vs->x;
+				Scr->rooty = vs->y;
+#endif
 				Scr->rootw = vs->w;
 				Scr->rooth = vs->h;
 				Scr->currentvs = vs;

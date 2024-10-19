@@ -23,7 +23,9 @@
 #endif
 #include "util.h"
 #include "win_iconify.h"
+#ifdef WINBOX
 #include "windowbox.h"
+#endif
 #include "workspace_utils.h"
 
 #include "ext/repl_str.h"
@@ -210,6 +212,7 @@ DFHANDLER(trace)
 
 
 
+#ifdef WINBOX
 /*
  * Special windowbox-related
  */
@@ -221,6 +224,7 @@ DFHANDLER(fittocontent)
 	}
 	fittocontent(tmp_win);
 }
+#endif
 
 
 
@@ -445,6 +449,7 @@ Execute(const char *_s)
 		s = tmp;
 	}
 
+#ifdef CAPTIVE
 	subs = strstr(s, "$redirect");
 	if(subs) {
 		char *tmp;
@@ -467,6 +472,7 @@ Execute(const char *_s)
 
 		free(redir);
 	}
+#endif
 
 
 	/*
