@@ -32,7 +32,11 @@ DFHANDLER(hypermove)
 	Cursor  cursor;
 	Window captive_root;
 
-	if(tmp_win->iswinbox || tmp_win->iswspmgr) {
+	if(
+#ifdef WINBOX
+		tmp_win->iswinbox ||
+#endif
+		tmp_win->iswspmgr) {
 		XBell(dpy, 0);
 		return;
 	}

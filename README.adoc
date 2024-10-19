@@ -1,6 +1,6 @@
-# CTWM: Claude's Tab Window Manager for the X Window System
+= CTWM: Claude's Tab Window Manager for the X Window System
 
-## NOTE:  This is a variant of the original [CTWM][CTWM].
+=== NOTE:  This is a variant of the original [CTWM][CTWM].
 
 This variant is maintained as a fork of the original.
 
@@ -13,8 +13,6 @@ This fork is maintained in [robohack's GitHub][GHRC] by Greg A. Woods.
 Motto:  Write Portable C without complicating the build!
 
 See, e.g.: https://nullprogram.com/blog/2017/03/30/
-
-= CTWM
 
 == Intro
 
@@ -64,7 +62,7 @@ invocations, and you won't need to worry about it; just run a normal
 `make ; make install` invocation.
 
 
-## Building
+== Building
 
 In the simple case, the defaults should work.  Most modern or semi-modern
 systems should fall into this.
@@ -77,7 +75,7 @@ You can put the build objects in another directory easily enough:
     $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make
 
 
-### Required Libraries
+=== Required Libraries
 
 ctwm requires various X11 libraries to be present.  That list will
 generally include libX11, libXext, libXmu, libXt, libSM, and libICE.
