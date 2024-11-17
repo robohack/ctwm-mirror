@@ -1328,10 +1328,31 @@ InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
 	scr->workSpaceMgr.icon_name = "WorkSpaceManager Icon";
 
 
-	// Setup default fonts in case the config file doesn't
-#define DEFAULT_NICE_FONT "-*-helvetica-bold-r-normal-*-*-120-*"
-#define DEFAULT_FAST_FONT "-misc-fixed-medium-r-semicondensed--13-120-75-75-c-60-*"
-#define SETFONT(fld, var) (scr->fld##Font.basename = DEFAULT_##var##_FONT)
+	/* from xdpyinfo.c:
+	 * there are 2.54 centimeters to an inch; so there are 25.4 millimeters.
+	 *
+	 *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))
+	 *         = N pixels / (M inch / 25.4)
+	 *         = N * 25.4 pixels / M inch
+	 */
+	scr->xres = (int) (((((double) DisplayWidth(dpy, scr->screen)) * 25.4) /
+		       ((double) DisplayWidthMM(dpy, scr->screen))) + 0.5);
+	scr->yres = (int) (((((double) DisplayHeight(dpy, scr->screen)) * 25.4) /
+			    ((double) DisplayHeightMM(dpy, scr->screen))) + 0.5);
+
+	// Setup default fontSets in case the config file doesn't
+	//
+	// Use iso10646-1 because that's why we're here!
+	//
+	// "bitstream charter" is the only proportional, scalable, iso10646-1
+	// font common to most modern X11 platforms (especially GNU/Linux!)
+	//
+	// "courier*" must have the star(*) because it may need to match either
+	// "courier" or "courier 10 pitch", depending on which is available.
+	//
+#define DEFAULT_NICE_FONT "-*-bitstream charter-medium-r-normal--0-100-%d-%d-*-p-iso10646-1"
+#define DEFAULT_FAST_FONT "-*-courier*-medium-r-normal--0-100-%d-%d-m-*-iso10646-1"
+#define SETFONT(fld, var) asprintf(&scr->fld##Font.basename, DEFAULT_##var##_FONT, scr->xres, scr->yres)
 
 	SETFONT(TitleBar,    NICE);
 	SETFONT(Menu,        NICE);
@@ -1339,8 +1360,9 @@ InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
 	SETFONT(Size,        FAST);
 	SETFONT(IconManager, NICE);
 	SETFONT(Default,     FAST);
-	scr->workSpaceMgr.windowFont.basename =
-	        "-adobe-courier-medium-r-normal--10-100-75-75-m-60-iso8859-1";
+	asprintf(&scr->workSpaceMgr.windowFont.basename,
+		 "-*-courier*-medium-r-normal--0-75-%d-%d-m-*-iso8859-1", // FAST, but smaller
+		 scr->xres, scr->yres);
 
 #undef SETFONT
 #undef DEFAULT_FAST_FONT

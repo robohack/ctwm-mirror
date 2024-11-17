@@ -10,11 +10,8 @@
 # any windows and to use meta-keys.
 #
 
-TitleFont	"-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-ResizeFont	"-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-MenuFont	"-adobe-helvetica-bold-r-normal--*-120-*-*-*-*-*-*"
-IconFont	"-adobe-helvetica-bold-r-normal--*-100-*-*-*-*-*-*"
-IconManagerFont	"-adobe-helvetica-bold-r-normal--*-100-*-*-*"
+# n.b. the default fonts are scalable fonts with the correct resolution
+
 ShowWorkSpaceManager			# start with workspace manager up
 UseThreeDMenus
 UseThreeDTitles
