@@ -1,6 +1,35 @@
 #
 #	A BSD Makefile for ctwm
 #
+# Tested on NetBSD, FreeBSD, and macos with pkgsrc bmake (and bootstrap-mk-files)
+#
+# It is assumed libjpeg is available (in EXTLIBS).
+#
+# Needs asciidoc and xmlto for manual page generation.
+#
+# BUILD_DIR=build-$(uname -s)-$(uname -m)
+# mkdir -p ${BUILD_DIR}
+# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make PREFIX=/usr/pkg LDSTATIC=-static obj
+# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make PREFIX=/usr/pkg LDSTATIC=-static all
+#
+# Notes:
+#
+# Don't use "make depend" on FreeBSD, and either do the "obj" step separately,
+# or, better yet, put "WITH_AUTO_OBJ=yes" on the command line (or in the
+# environment).
+#
+# You can use "make obj dependall" on NetBSD and with pkgsrc bmake.
+#
+# PREFIX defaults to ${X11ROOTDIR}, which should be defined if your system has
+# <bsd.x11.mk>, and in this case the default plan is to install there as well.
+#
+# X11ROOTDIR defaults to ${PREFIX} in case <bsd.x11.mk> is not found.
+#
+# So, one of one of PREFIX or X11ROOTDIR must be defined if there is no
+# <bsd.x11.mk>.
+#
+# EXTLIBS defaults to ${PREFIX}, if that is defined, else "/usr/pkg"
+#
 
 .include <bsd.own.mk>
 
@@ -80,11 +109,45 @@ SRCS+=	xrandr.c
 SRCS+=	gram.y
 SRCS+=	lex.l
 
-SRCS+=	ext/repl_str.c
-.if make(obj)
 SUBDIR+=	ext
+
+LDADD+=	-Lext -lext
+DPADD+=	${.OBJDIR}/ext/libext.a
+
+# Most of the non-NetBSD <bsd.subdir.mk>s are terribly unreliable!
+#
+# XXX grrr.... just for FreeBSD
+${PROG}: ext .WAIT
+#
+# XXX grrr.... for pkgsrc bootstrap-mk-files
+.if defined(OS) && (${unix:U"not-bmake?"} == "We run Unix")
+${PROG}: all-ext .WAIT
 .endif
 
+# more modern mk-files install a ${PROG}.debug file in libdata or whatever
+#
+STRIPFLAG =	# empty, for bootstrap-mk-files and older bmakes
+STRIP =		# empty, for bootstrap-mk-files and older bmakes
+
+EXTLIBS?=	${PREFIX:U/usr/pkg}
+
+.if defined(CPPFLAGS)
+CPPFLAGS+=	-I${EXTLIBS}/include
+.else
+CFLAGS+=	-I${EXTLIBS}/include
+.endif
+LDFLAGS+=	-L${EXTLIBS}/lib
+. if empty(LDSTATIC)
+LDFLAGS+=	-Wl,-rpath,${EXTLIBS}/lib
+. endif
+
+.if defined(PREFIX)
+# note: must define both in case <bsd.x11.mk> does not exist
+BINDIR=		${PREFIX}/bin
+X11BINDIR=	${PREFIX}/bin
+MANDIR=		${PREFIX}/${PKGMANDIR:Ushare/man}
+X11MANDIR=	${PREFIX}/${PKGMANDIR:Ushare/man}
+.endif
 
 # Build documentation files
 DOC_FILES=README.html CHANGES.html
@@ -96,38 +159,31 @@ docs_clean doc_clean:
 .adoc.html:
 	asciidoctor -o ${@} ${<}
 
-
 # asciidoc files
-UMAN=doc/manual
-adocs:
-	(cd ${UMAN} && make all_set_version)
-adocs_pregen:
-	(cd ${UMAN} && make all)
-adoc_clean:
-	(cd ${UMAN} && make clean)
+#UMAN=doc/manual
+#adocs:
+#	(cd ${UMAN} && make all_set_version)
+#adocs_pregen:
+#	(cd ${UMAN} && make all)
+#adoc_clean:
+#	(cd ${UMAN} && make clean)
 
-
-# Generated files
+# Generated source files
 #
-SRCS+=	ctwm_atoms.c
-SRCS+=	deftwmrc.c
-SRCS+=	version.c
+GENSRCS+=	ctwm_atoms.c
+GENSRCS+=	deftwmrc.c
+GENSRCS+=	version.c
 
-X11ROOTDIR?=	/usr/X11
+SRCS+=		${GENSRCS}
 
-PREFIX?=	${X11ROOTDIR}
+GENHDRS+=	ctwm_config.h
+GENHDRS+=	gram.tab.h
+GENHDRS+=	ctwm_atoms.h
+GENHDRS+=	ewmh_atoms.h
+GENHDRS+=	event_names_table.h
+GENHDRS+=	functions_defs.h functions_deferral.h functions_parse_table.h functions_dispatch_execution.h
 
-.if ${PREFIX} == ${X11ROOTDIR}
-PKGDIR?=	/usr/pkg
-CPPFLAGS+=	-I${PKGDIR}/include
-LDFLAGS+=	-L${PKGDIR}/lib
-XPMDIR?=	${X11ROOTDIR}/include/X11/pixmaps/ctwm
-#
-# xxx ToDo:  detect various optional libraries and add -D & -L, srcs, etc.
-#
-.else
-XPMDIR=		${PREFIX}/share/ctwm/images
-.endif
+DPSRCS+= 	${GENHDRS}
 
 # xxx mimic pkgsrc to support systems without <bsd.x11.mk> (which currently
 # include non-NetBSD pkgsrc platforms using bootstrap-mk-files!)
@@ -145,29 +201,44 @@ CTWMCONFIGDIR=	${X11ETCDIR}/ctwm
 FILES+=			system.ctwmrc
 FILESDIR_system.ctwmrc=	${CTWMCONFIGDIR}
 
-.if empty(CPPFLAGS:M*-I.*)
+CTWM_FLAGS+=	-I${.CURDIR} -I${.CURDIR}/ext
+
+CTWM_FLAGS+=	-DPIXMAP_DIRECTORY=\"${XPMDIR}\"
+
+CTWM_FLAGS+=	-DSYSTEM_INIT_FILE=\"${CTWMCONFIGDIR}/system.ctwmrc\"
+
+CTWM_FLAGS+=	-DCAPTIVE	# captive.c et al
+CTWM_FLAGS+=	-DSESSION	# session.c
+CTWM_FLAGS+=	-DWINBOX
+
+CTWM_FLAGS+=	-DEWMH
+CTWM_FLAGS+=	-DJPEG		# needs libjpeg, of course
+CTWM_FLAGS+=	-DUSE_SYS_REGEX
+CTWM_FLAGS+=	-DXPM
+CTWM_FLAGS+=	-DXRANDR	# xrandr.c
+
+CTWM_FLAGS+=	-DUSEM4
+CTWM_FLAGS+=	-DM4CMD=\"${M4:Um4}\"
+
+# This .if is annoying, but some older systems (and modern FreeBSD) don't
+# support CPPFLAGS.
+#
+.if defined(CPPFLAGS)
+. if empty(CPPFLAGS:M*-I.*)
 CPPFLAGS+=	-I.
+. endif
+CPPFLAGS+=	${CTWM_FLAGS}
+.else
+. if empty(CFLAGS:M*-I.*)
+CFLAGS+=	-I.
+. endif
+CFLAGS+=	${CTWM_FLAGS}
 .endif
-CPPFLAGS+=	-I${.CURDIR} -I${.CURDIR}/ext
-
-CPPFLAGS+=	-DPIXMAP_DIRECTORY=\"${XPMDIR}\"
-
-CPPFLAGS+=	-DSYSTEM_INIT_FILE=\"${CTWMCONFIGDIR}/system.ctwmrc\"
-
-CPPFLAGS+=	-DCAPTIVE	# captive.c et al
-CPPFLAGS+=	-DSESSION	# session.c
-CPPFLAGS+=	-DWINBOX
-
-CPPFLAGS+=	-DEWMH
-CPPFLAGS+=	-DJPEG
-CPPFLAGS+=	-DUSE_SYS_REGEX
-CPPFLAGS+=	-DXPM
-#CPPFLAGS+=	-DXRANDR	# xxx next release?
-
-CPPFLAGS+=	-DUSEM4
-CPPFLAGS+=	-DM4CMD=\"${M4:Um4}\"
 
 YHEADER=1
+
+# for non-NetBSD bmakes
+HOST_SH?=	${SHELL}
 
 # xxx this is stupid, but avoids patching a bunch of files with:
 #
@@ -175,142 +246,62 @@ YHEADER=1
 #
 gram.tab.h: Makefile
 	ln -fs gram.h $@
-ydeps+=	add_window.o
-ydeps+=	ctwm_main.o
-ydeps+=	drawing.o
-ydeps+=	event_handlers.o
-ydeps+=	gc.o
-ydeps+=	iconmgr.o
-ydeps+=	mask_screen.o
-ydeps+=	menus.o
-ydeps+=	parse_be.o
-ydeps+=	parse_yacc.o
-ydeps+=	util.o
-ydeps+=	win_decorations.o
-ydeps+=	workspace_manager.o
-ydeps+= .depend
-${ydeps}: gram.tab.h
 
 CLEANFILES+=	gram.tab.h
 
 # xxx this is also stupid, but avoids patching a bunch of files to remove it
 #
-ctwm_config.h: Makefile
-	rm -f ctwm_config.h
-	touch ctwm_config.h
-
-.depend: ctwm_config.h
-
-${SRCS:R:S/$/.o/g}: ctwm_config.h
+ctwm_config.h:
+	rm -f $@
+	touch $@
 
 CLEANFILES+=	ctwm_config.h
 
-ctwm_atoms.c: ctwm_atoms.in # tools/mk_atoms.sh
-	${SHELL} ${.CURDIR}/tools/mk_atoms.sh ${.CURDIR}/ctwm_atoms.in ctwm_atoms CTWM
-
-ctwm_atoms.h: ctwm_atoms.c
-
-.depend: 	ctwm_atoms.c .WAIT ctwm_atoms.h
+.ORDER: ctwm_atoms.c ctwm_atoms.h
+ctwm_atoms.c ctwm_atoms.h: tools/mk_atoms.sh ctwm_atoms.in
+	${_MKTARGET_CREATE}
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} ${.OBJDIR}/ctwm_atoms CTWM
+	[ -f ctwm_atoms.h ]
 
 CLEANFILES+=	ctwm_atoms.c ctwm_atoms.h
 
-add_window.o: ctwm_atoms.h
-animate.o: ctwm_atoms.h
-captive.o: ctwm_atoms.h
-ctwm_main.o: ctwm_atoms.h
-event_handlers.o: ctwm_atoms.h
-ewmh.o: ctwm_atoms.h
-functions_win.o: ctwm_atoms.h
-mwmhints.o: ctwm_atoms.h
-occupation.o: ctwm_atoms.h
-otp.o: ctwm_atoms.h
-parse.o: ctwm_atoms.h
-parse_be.o: ctwm_atoms.h
-session.o: ctwm_atoms.h
-vscreen.o: ctwm_atoms.h
-win_utils.o: ctwm_atoms.h
-workspace_manager.o: ctwm_atoms.h
-workspace_utils.o: ctwm_atoms.h
-
-ewmh_atoms.c: ewmh_atoms.in # tools/mk_atoms.sh
-	${SHELL} ${.CURDIR}/tools/mk_atoms.sh ${.CURDIR}/ewmh_atoms.in ewmh_atoms EWMH
-
-ewmh_atoms.h: ewmh_atoms.c
-
-.depend:	ewmh_atoms.c .WAIT ewmh_atoms.h
+.ORDER: ewmh_atoms.c ewmh_atoms.h
+ewmh_atoms.c ewmh_atoms.h: tools/mk_atoms.sh ewmh_atoms.in
+	${_MKTARGET_CREATE}
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} ${.OBJDIR}/ewmh_atoms EWMH
+	[ -f ewmh_atoms.h ]
 
 CLEANFILES+=	ewmh_atoms.c ewmh_atoms.h
 
-add_window.o: ewmh_atoms.h
-ewmh.o: ewmh_atoms.h
-win_utils.o: ewmh_atoms.h
-workspace_utils.o: ewmh_atoms.h
+deftwmrc.c: tools/mk_deftwmrc.sh system.ctwmrc
+	${_MKTARGET_CREATE}
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} > $@
 
-deftwmrc.c: system.ctwmrc # tools/mk_deftwmrc.sh
-	${SHELL} ${.CURDIR}/tools/mk_deftwmrc.sh ${.CURDIR}/system.ctwmrc > deftwmrc.c
+CLEANFILES+=	${.OBJDIR}/deftwmrc.c
 
-.depend:	deftwmrc.c
-
-CLEANFILES+=	deftwmrc.c
-
-event_names_table.h: event_names.list # tools/mk_event_names.sh
-	${SHELL} ${.CURDIR}/tools/mk_event_names.sh ${.CURDIR}/event_names.list > $@
-
-event_names.o: event_names_table.h
-
-.depend:	event_names_table.h
+event_names_table.h: tools/mk_event_names.sh event_names.list
+	${_MKTARGET_CREATE}
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} > $@
 
 CLEANFILES+=	event_names_table.h
 
-functions_defs.h: functions_defs.list # tools/mk_function_bits.sh
-	${SHELL} ${.CURDIR}/tools/mk_function_bits.sh ${.CURDIR}/functions_defs.list ${.OBJDIR}
+FUNCTION_BITS+=	functions_defs.h
+FUNCTION_BITS+=	functions_deferral.h
+FUNCTION_BITS+=	functions_parse_table.h
+FUNCTION_BITS+=	functions_dispatch_execution.h
+.ORDER: ${FUNCTION_BITS}
+${FUNCTION_BITS}: tools/mk_function_bits.sh functions_defs.list
+	${_MKTARGET_CREATE}
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} ${.OBJDIR}
+	[ -f functions_dispatch_execution.h ]
 
-functions_deferral.h functions_parse_table.h functions_dispatch_execution.h: functions_defs.h
+CLEANFILES+=	${FUNCTION_BITS}
 
-.depend:	functions_defs.h .WAIT functions_deferral.h functions_parse_table.h functions_dispatch_execution.h
+version.c: tools/mk_version_in.sh version.c.in
+	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} |		\
+	${SCRIPT_ENV} ${HOST_SH} ${.CURDIR}/tools/rewrite_version_git.sh > $@
 
-CLEANFILES+=	functions_defs.h functions_deferral.h functions_parse_table.h functions_dispatch_execution.h
-
-event_handlers.o: functions_defs.h
-ewmh.o: functions_defs.h
-functions.o: functions_defs.h
-functions.o: functions_deferral.h
-functions_misc.o: functions_defs.h
-functions_win.o: functions_defs.h
-functions_win_moveresize.o: functions_defs.h
-gram.o: functions_defs.h
-iconmgr.o: functions_defs.h
-lex.o: functions_defs.h
-menus.o: functions_defs.h
-parse_be.o: functions_defs.h
-parse_yacc.o: functions_defs.h
-win_decorations_init.o: functions_defs.h
-win_resize.o: functions_defs.h
-
-functions.o: functions_deferral.h
-
-functions.o: functions_dispatch_execution.h
-
-functions.o: functions_internal.h
-functions_captive.o: functions_internal.h
-functions_icmgr_wsmgr.o: functions_internal.h
-functions_identify.o: functions_internal.h
-functions_misc.o: functions_internal.h
-functions_warp.o: functions_internal.h
-functions_win.o: functions_internal.h
-functions_win_moveresize.o: functions_internal.h
-functions_workspaces.o: functions_internal.h
-
-parse_be.o: functions_parse_table.h
-
-# assume this is building a release with a pre-generated version.c.in
-#
-version.c: version.c.in VERSION # tools/mk_version_in.sh
-	${SHELL} ${.CURDIR}/tools/mk_version_in.sh ${.CURDIR}/version.c.in |	\
-		sed -e 's/%%VCSTYPE%%/NULL/'					\
-		    -e 's/%%REVISION%%/NULL/' > $@
-
-.depends:	version.c
+version.c: tools/rewrite_version_git.sh
 
 CLEANFILES+=	version.c
 
@@ -417,20 +408,74 @@ FILES+=	xterm.xpm
 
 .PATH:	${.CURDIR}/xpm
 
+.if defined(OS) && (${unix:U"not-bmake?"} == "We run Unix")
+# xxx else nothing makes it a target!
+dependall all:	ctwm.1 ctwm.1.html
+.endif
+
 ctwm.1: ctwm.1.docbook
-	xmlto --skip-validation man ctwm.1.docbook
+	xmlto --skip-validation man ctwm.1.docbook || true
 
 CTWM_VERSION!=	cat ${.CURDIR}/VERSION
 
-ctwm.1.docbook: doc/manual/ctwm.1.adoc VERSION # tools/mk_version_in.sh
+ctwm.1.docbook: doc/manual/ctwm.1.adoc VERSION
 	sed -e 's|@ETCDIR@|${CTWMCONFIGDIR}|'		\
 	    -e 's|@ctwm_version_str@|${CTWM_VERSION}|'	\
 		< ${.CURDIR}/doc/manual/ctwm.1.adoc |	\
 		asciidoc -d manpage -b docbook -o $@ -
 
+ctwm.1.html: doc/manual/ctwm.1.adoc VERSION
+	sed -e 's|@ETCDIR@|${CTWMCONFIGDIR}|'		\
+	    -e 's|@ctwm_version_str@|${CTWM_VERSION}|'	\
+		< ${.CURDIR}/doc/manual/ctwm.1.adoc |	\
+		asciidoc -a toc -a numbered -b html4 -o $@ -
+
 CLEANFILES+= ctwm.1.docbook ctwm.1
 
-.include <bsd.files.mk>
 .-include <bsd.x11.mk>
+
+PREFIX?=	${X11ROOTDIR}
+X11ROOTDIR?=	${PREFIX}
+
+.if ${PREFIX} == ${X11ROOTDIR}
+XPMDIR?=	${X11ROOTDIR}/include/X11/pixmaps/ctwm
+.else
+XPMDIR=		${PREFIX}/share/ctwm/images
+.endif
+
+.if !defined(X11ROOTDIR)
+
+. if exists(/opt/X11)
+X11ROOTDIR=	/opt/X11
+. elif exists(/usr/X11)
+X11ROOTDIR=	/usr/X11
+. elif exists(/usr/X11R7)
+X11ROOTDIR=	/usr/X11R7
+. endif
+
+X11INCDIR?=	${X11ROOTDIR}/include
+
+CPPFLAGS+=	-I${X11INCDIR}
+
+X11USRLIBDIR?=	${X11ROOTDIR}/lib
+
+LDFLAGS+=	-L${X11USRLIBDIR}
+. if empty(LDSTATIC)
+LDFLAGS+=	-Wl,-rpath,${X11USRLIBDIR}
+. endif
+
+X11BINDIR?=	${X11ROOTDIR}/bin
+X11MANDIR?=	${X11ROOTDIR}/man
+
+.endif	# !defined(X11ROOTDIR)
+
 .include <bsd.prog.mk>
+.include <bsd.files.mk>
 .include <bsd.subdir.mk>
+
+#
+# Local Variables:
+# eval: (make-local-variable 'compile-command)
+# compile-command: (concat "BUILD_DIR=build-$(uname -s)-$(uname -m); mkdir -p ${BUILD_DIR}; MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} PREFIX=/usr/pkg " (default-value 'compile-command) " LDSTATIC=-static obj dependall")
+# End:
+#

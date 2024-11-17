@@ -4,7 +4,8 @@
 # We assume if we're getting called, git is available.
 
 
-REVID=`git rev-parse HEAD`
+# xxx current branch is also "git rev-parse --abbrev-ref HEAD"
+REVID=`git branch --show-current`-`git rev-parse --short HEAD`
 if [ $? -ne 0 ]; then
 	# Failed somehow
 	REVID="???"

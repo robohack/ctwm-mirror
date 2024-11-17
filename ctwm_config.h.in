@@ -1,6 +1,7 @@
 /*
- * Compile-time config settings.  This gets processed by cmake into the
- * file that's actually used.
+ * Compile-time config settings.  This gets ignored.
+ *
+ * xxx the real settings are done in Makefile
  */
 
 

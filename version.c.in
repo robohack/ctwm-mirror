@@ -18,7 +18,7 @@
 #define VERSION_ID VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
 #define VERSION_ID_FULL VERSION_ID VERSION_ADDL
 
-const char *TwmVersion = "MIT X Consortium, R6, ctwm " VERSION_ID_FULL;
+const char *TwmVersion = "MIT X Consortium, R7, ctwm " VERSION_ID_FULL;
 const char *VersionNumber = VERSION_ID;
 const char *VersionNumberFull = VERSION_ID_FULL;
 const char *VersionNumber_major = VERSION_MAJOR;

@@ -3,9 +3,8 @@
 
 src=$1
 
-# This turns the soruce version.c.in into a version.c.in with the version
-# numbers from VERSION sub'd in.  The destination is still a .in because
-# it [potentially] gets VCS info sub'd in as well.
+# This outputs the contents of version.c.in with the version numbers from
+# VERSION sub'd in.
 
 # Assume VERSION is in the dir above us
 vfile="$(dirname ${0})/../VERSION"

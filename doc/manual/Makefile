@@ -1,18 +1,27 @@
+#
+# XXX N.B.:  This file is not currently used in the bsdmake branch -- just kept
+# for reference
+#
+# Note also 'asciidoc' is used in the top-level bsdmake Makefile as it is more
+# readily available in pkgsrc with fewer nasty dependencies.
+#
+
 BASE=ctwm.1
 
 HTML=${BASE}.html
+
+GNU_SED?=	gsed
 
 html: ${HTML}
 man: ${BASE}
 
 all: html man
 
-all_set_version: all
-	sed -i '' -e "s/@ctwm_version_str@/`head -1 ../../VERSION`/" ${HTML} ${BASE}
+all: all
+	${GNU_SED} --in-place -e "s/@ctwm_version_str@/`head -1 ../../VERSION`/" ${HTML} ${BASE}
 
 clean:
 	rm -f ${BASE} ${HTML}
-
 
 # asciidoc vs asciidoctor notes:
 #
@@ -43,8 +52,6 @@ man-asciidoc-adoc: ${BASE}.adoc
 
 man-asciidoctor: ${BASE}.adoc
 	asciidoctor -b manpage -o ${BASE} ${BASE}.adoc
-
-
 
 # Set which are used by default.  Set to asciidoctor since it's massively
 # faster.

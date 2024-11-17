@@ -95,8 +95,8 @@ Identify(TwmWindow *t)
 
 	snprintf(Info[n++], INFO_SIZE, "Twm version:  %s", TwmVersion);
 	CHKN;
-	if(VCSRevision) {
-		snprintf(Info[n++], INFO_SIZE, "VCS Revision:  %s", VCSRevision);
+	if(VCSType && VCSRevision) {
+		snprintf(Info[n++], INFO_SIZE, "VCS Revision:  %s:%s", VCSType, VCSRevision);
 		CHKN;
 	}
 
