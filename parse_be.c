@@ -970,6 +970,10 @@ do_string_keyword(int keyword, char *s)
 		}
 
 		case kws_IconFont:
+			// see the comment in ctwm_main.c just before the call
+			// to CreateFonts() as to why are these all wrapped in
+			// !HaveFonts XXX it still maybe doesn't make sense here
+			// though....
 			if(!Scr->HaveFonts) {
 				Scr->IconFont.basename = s;
 			}

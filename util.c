@@ -313,7 +313,7 @@ UpdateFont(MyFont *font, int height)
 static void
 GetFont(MyFont *font)
 {
-	char *deffontname = "fixed,*";
+	const char *deffontname = "-*-*-medium-r-normal--0-100-%d-%d-m-*-iso8859-1";
 	char **missing_charset_list_return;
 	int missing_charset_count_return;
 	char *def_string_return;
@@ -338,25 +338,40 @@ GetFont(MyFont *font)
 		XFreeFontSet(dpy, font->font_set);
 	}
 
-	asprintf(&basename2, "%s,*", font->basename);
+	/* xxx eliminate the VERY bad ",*" hack but keep the asprintf() for now */
+	asprintf(&basename2, "%s", font->basename);
 	if((font->font_set = XCreateFontSet(dpy, basename2,
 	                                    &missing_charset_list_return,
 	                                    &missing_charset_count_return,
 	                                    &def_string_return)) == NULL) {
-		fprintf(stderr, "Failed to get fontset %s\n", basename2);
+		fprintf(stderr, "Failed to get fontset \"%s\"\n", basename2);
+		free(basename2);
+		/* n.b.:  for now there will always be a DefaultFont! */
 		if(Scr->DefaultFont.basename) {
-			deffontname = Scr->DefaultFont.basename;
+			asprintf(&basename2, "%s", Scr->DefaultFont.basename);
+		} else {
+			asprintf(&basename2, deffontname, Scr->xres, Scr->yres);
 		}
-		if((font->font_set = XCreateFontSet(dpy, deffontname,
+		fprintf(stderr, "trying default fontset \"%s\"\n", basename2);
+		if((font->font_set = XCreateFontSet(dpy, basename2,
 		                                    &missing_charset_list_return,
 		                                    &missing_charset_count_return,
 		                                    &def_string_return)) == NULL) {
 			fprintf(stderr, "%s:  unable to open fonts \"%s\" or \"%s\"\n",
-			        ProgramName, font->basename, deffontname);
+			        ProgramName, font->basename, basename2);
 			exit(1);
 		}
 	}
-	free(basename2);
+        if (missing_charset_count_return) {
+		fprintf(stderr, "%d charsets are missing from fontset \"%s\"\n",
+			missing_charset_count_return, basename2);
+		for (i = 0; i < missing_charset_count_return; i++) {
+			fprintf(stderr, "font for charset %s is lacking.\n",
+				missing_charset_list_return[i]);
+		}
+		XFreeStringList(missing_charset_list_return);
+        }
+
 	font_extents = XExtentsOfFontSet(font->font_set);
 
 	fnum = XFontsOfFontSet(font->font_set, &xfonts, &font_names);
@@ -373,6 +388,12 @@ GetFont(MyFont *font)
 	font->avg_height = 0;
 	font->avg_fheight = 0.0;
 	font->avg_count = 0;
+	if(CLarg.PrintErrorMessages) {	/* xxx overload, but kinda like old twm */
+		fprintf(stderr, "created fontset with %d fonts (%d missing) for \"%s\"\n",
+			fnum, missing_charset_count_return,
+			basename2);
+	}
+	free(basename2);
 }
 
 

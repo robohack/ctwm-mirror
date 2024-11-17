@@ -142,6 +142,9 @@ struct ScreenInfo {
 	/// @}
 #endif
 
+	int xres;	///< horizontal DPI
+	int yres;	///< vertical DPI
+
 	int MaxWindowWidth;   ///< Largest window width to allow
 	int MaxWindowHeight;  ///< Largest window height to allow
 

@@ -159,8 +159,9 @@ CreateWorkSpaceManager(void)
 	}
 
 	/* Setup basic fonts/colors/cursors */
-	Scr->workSpaceMgr.windowFont.basename =
-	        "-adobe-courier-medium-r-normal--10-100-75-75-m-60-iso8859-1";
+	asprintf(&Scr->workSpaceMgr.windowFont.basename,
+		 "-*-*-medium-r-normal--0-75-%d-%d-m-*-iso8859-1",
+		 Scr->xres, Scr->yres);
 	Scr->workSpaceMgr.buttonFont = Scr->IconManagerFont;
 	Scr->workSpaceMgr.cp         = Scr->IconManagerC;
 	if(!Scr->BeNiceToColormap) {
