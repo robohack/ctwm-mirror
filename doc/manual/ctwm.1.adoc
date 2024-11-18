@@ -3141,7 +3141,7 @@ the `iconmgr` context when specifying button and keyboard bindings.
 
 Moving the pointer into the icon manager also directs keyboard focus to
 the indicated window (setting the focus explicitly or else sending synthetic
-events `NoTitleFocus` is set).
+events `NoTitleFocus` is set), unless `NoIconManagerFocus` is set.
 Using the `f.upiconmgr`, `f.downiconmgr`
 `f.lefticonmgr`, and
 `f.righticonmgr` functions,
