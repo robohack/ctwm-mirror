@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $0 ../function_defs.list OUTDIR
+# $0 ../functions_defs.list OUTDIR
 #
 # Generates output files with various defs and lookup arrays.
 

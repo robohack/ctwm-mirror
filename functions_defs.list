@@ -117,6 +117,7 @@ sorticonmgr           - CS -
 speedupanimation      - -  -
 squeeze               - CS -
 startanimation        - -  -
+startwm               S -  -
 stopanimation         - -  -
 switchpriority        - CS -
 tinylower             - CS -

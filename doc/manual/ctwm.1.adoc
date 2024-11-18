@@ -2893,6 +2893,12 @@ f.squeeze::
 f.startanimation::
   Restart freezed animations (if any).
 
+f.startwm `string`::
+  This function shuts down ctwm and execs an alternate window manager in its
+  place.  The argument `string` is passed to `/bin/sh` for execution.
++
+First appeared in 4.2.0.
+
 f.stopanimation::
   Freeze animations (if any).
 

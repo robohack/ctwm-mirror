@@ -165,6 +165,7 @@ DFHANDLER(altkeymap);
 DFHANDLER(altcontext);
 DFHANDLER(quit);
 DFHANDLER(restart);
+DFHANDLER(startwm);
 DFHANDLER(beep);
 DFHANDLER(trace);
 #ifdef WINBOX

@@ -275,3 +275,33 @@ DoRestart(Time t)
 	// fails, we're in a really weird state...
 	XBell(dpy, 0);
 }
+
+void
+DoStartWM(Time t,
+	const char *action)
+{
+	// Don't try to do any further animating
+	StopAnimation();
+	XSync(dpy, 0);
+
+	// Replace all the windows/colormaps as if we were going away.  'cuz
+	// we are.
+	RestoreForShutdown(t);
+	XSync(dpy, 0);
+
+#ifdef SESSION
+	// Shut down session management connection cleanly.
+	shutdown_session();
+#endif
+
+	// start the specified program, hopefully it is a window manager! (or
+	// xterm?)!
+	execlp("/bin/sh", "sh", "-c", action, (void *) NULL);
+
+	// Uh oh, we shouldn't get here...
+	fprintf(stderr, "%s:  unable to restart:  %s\n", ProgramName, *Argv);
+
+	// We should probably un-RestoreForShutdown() etc.  If that exec
+	// fails, we're in a really weird state...
+	XBell(dpy, 0);
+}
