@@ -974,16 +974,6 @@ void HandleKeyPress(void)
 
 		/* 'k, it's a match (or potential match, in C_NAME case) */
 
-		/*
-		 * Weed out the functions that don't make sense to execute from a
-		 * key press
-		 *
-		 * TODO: add keyboard moving/resizing of windows.
-		 */
-		if(key->func == F_MOVE || key->func == F_RESIZE) {
-			return;
-		}
-
 		if(key->cont != C_NAME) {
 			/* Normal context binding; do what it wants */
 			if(key->func == F_MENU) {
