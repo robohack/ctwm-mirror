@@ -5,7 +5,8 @@
 This variant is maintained as a fork of the original.
 
 This CTWM uses BSD Make for building, and it includes a few minor bug
-fixes and other enhancements.  See the Git history.  Further fixes or
+fixes and other enhancements (such as using scalable fonts for the
+default built-in fontSets).  See the Git history.  Further fixes or
 enhancements are welcome.
 
 This fork is maintained in [robohack's GitHub][GHRC] by Greg A. Woods.
@@ -59,13 +60,14 @@ ctwm is built using a very simple BSD Makefile.
 
 In the common case, the included Makefile will do the necessary
 invocations, and you won't need to worry about it; just run a normal
-`make ; make install` invocation.
+`make; make install` invocation.
 
 
 == Building
 
 In the simple case, the defaults should work.  Most modern or semi-modern
-systems should fall into this.
+systems should fall into this, though it may depend on how your system
+provides X11, both as the user environment, as well as for development.
 
     $ make
 
@@ -78,11 +80,19 @@ You can put the build objects in another directory easily enough:
 === Required Libraries
 
 ctwm requires various X11 libraries to be present.  That list will
-generally include libX11, libXext, libXmu, libXt, libSM, and libICE.
+generally include libXmu, libXext, libXt, libSM, and libICE, as well as
+of course libX11, libxcb, libXau, and libXdmcp.
 
 Depending on your host environment, you may require extra libraries,
-such as libXpm, libjpeg, and libXrandr.  These can very easily be
-installed with [pkgsrc][pkgsrc]
+such as libXpm, libjpeg, libXrandr, and lXrender.  These can very easily
+be installed with [pkgsrc][pkgsrc] (though libXpm, libXrandr, and
+libXrender should normally come installed with the rest of your X11
+libraries).
+
+You can tell make where any extra libraries (and their header files) are
+installed by setting `EXTLIBS` on the command line, e.g. as in:
+
+    $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make EXTLIBS=/usr/pkg
 
 
 == Installation
@@ -91,15 +101,50 @@ Installation as root is easy:
 
     # make install
 
+You can set the installation directory for `make install` by setting
+`PREFIX` on the command line (and if your mk-files support it, `DESTDIR`
+can be set for staging as well, see Packaging below).
+
+`PREFIX` defaults to `X11ROOTDIR`, which should be defined automatically
+if your system has `<bsd.x11.mk>`.  On the other hand `X11ROOTDIR`
+defaults to `PREFIX` if there is no system `<bsd.x11.mk>`, so one of
+`X11ROOTDIR` or `PREFIX` must be set in that case.
+
+`PREFIX` and/or `X11ROOTDIR` must be set during the build phases as
+well.
+
 
 === Packaging
 
-BSD Makes generally support ${DESTDIR} installs -- to create a binary
+BSD Makes generally support `DESTDIR` installs -- to create a binary
 distribution archive just do the following:
 
     $ mkdir build; MAKEOBJDIRPREFIX=$(pwd -P)/build make obj
     $ MAKEOBJDIRPREFIX=$(pwd -P)/build make
-    $ mkdir dist; MAKEOBJDIRPREFIX=$(pwd -P)/build make DESTDIR=$(pwd -P) install
+    $ mkdir dist; MAKEOBJDIRPREFIX=$(pwd -P)/build make DESTDIR=$(pwd -P)/dist install
+
+
+== Notes for Specific Systems
+
+* NetBSD:
+
+- You can use "make obj dependall" on NetBSD, all in one command (with
+  `MAKEOBJDIRPREFIX`, obviously).
+
+* FreeBSD:
+
+- Don't use `make depend` on FreeBSD -- it maintains dependency
+  information automatically.
+
+- Do the `make obj` step separately, or better yet set
+  `WITH_AUTO_OBJ=yes` on the command-line (with `MAKEOBJDIRPREFIX`).
+
+* Systems using pkgsrc's `bmake` and `bootstrap-mk-files`:
+
+- just set `PREFIX` if you want to install with your pkgsrc install,
+  else set `EXTLIBS` to where packages are installed and set `PREFIX` to
+  where you want to install ctwm, such as `PREFIX=/usr/local` or
+  `PREFIX=$HOME`.
 
 
 == Dev and Support
