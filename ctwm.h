@@ -72,6 +72,7 @@
 
 
 #define C_NO_CONTEXT    -1
+// n.b.: the rest are bit positions
 #define C_WINDOW        0
 #define C_TITLE         1
 #define C_ICON          2
