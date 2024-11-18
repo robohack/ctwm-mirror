@@ -7,6 +7,7 @@
 void RestoreWinConfig(TwmWindow *tmp);
 void DoShutdown(void) __attribute__((noreturn));
 void DoRestart(Time t);
+void DoStartWM(Time t, const char *);
 
 
 #endif /* _CTWM_SHUTDOWN_H */

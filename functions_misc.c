@@ -200,6 +200,11 @@ DFHANDLER(restart)
 	DoRestart(eventp->xbutton.time);
 }
 
+DFHANDLER(startwm)
+{
+	DoStartWM(eventp->xbutton.time, action);
+}
+
 DFHANDLER(beep)
 {
 	XBell(dpy, 0);
