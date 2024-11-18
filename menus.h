@@ -97,7 +97,7 @@ struct MouseButton {
 struct FuncButton {
 	struct FuncButton *next;    /* next in the list of function buttons */
 	int num;                    /* button number */
-	int cont;                   /* context */
+	int cont;                   /* context (singular -- one binding per) */
 	int mods;                   /* modifiers */
 	int func;                   /* the function number */
 	MenuRoot *menu;             /* menu if func is F_MENU */
@@ -109,7 +109,7 @@ struct FuncKey {
 	char *name;                 /* key name */
 	KeySym keysym;              /* X keysym */
 	KeyCode keycode;            /* X keycode */
-	int cont;                   /* context */
+	int cont;                   /* context (singular -- one binding per) */
 	int mods;                   /* modifiers */
 	int func;                   /* function to perform */
 	char *win_name;             /* window name (if any) */
