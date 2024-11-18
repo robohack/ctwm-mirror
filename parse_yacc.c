@@ -156,7 +156,7 @@ MenuRoot *GetRoot(char *name, char *fore, char *back)
 
 void GotButton(int butt, int func)
 {
-	int i;
+	int i;				/* context enumerator */
 	MenuItem *item;
 
 	for(i = 0; i < NUM_CONTEXTS; i++) {
@@ -184,7 +184,7 @@ void GotButton(int butt, int func)
 
 void GotKey(char *key, int func)
 {
-	int i;
+	int i;				/* context enumerator */
 
 	for(i = 0; i < NUM_CONTEXTS; i++) {
 		if((cont & (1 << i)) == 0) {
