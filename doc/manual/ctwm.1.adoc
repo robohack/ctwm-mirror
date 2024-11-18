@@ -208,7 +208,7 @@ user-defined menus (containing functions to be invoked or
 commands to be executed).
 
 Variable names and keywords are case-insensitive.  Strings must be
-surrounded by double quote characters (e.g. ``blue'') and are
+surrounded by double quote characters (e.g. "blue") and are
 case-sensitive.  A pound sign (&#35;) outside of a string causes the
 remainder of the line in which the character appears to be treated as
 a comment.
@@ -276,25 +276,33 @@ HOME::
 === ctwm info
 
 TWM_TYPE::
-  Tells which `twm` offshoot is running.  It will always be set to
-  the string ``ctwm'' in this program.  This is useful for protecting
-  parts of your `.twmrc` file that twm proper won't understand
-  (like `WorkSpaces`) so that it is still usable with other
-  `twm` programs.
+  Tells which `twm` offshoot is running.  It will always be set to the
+  string ``ctwm'' in this program.  This could be useful for
+  protecting parts of your `.twmrc` file that `twm` proper won't
+  understand (like `WorkSpaces`) so that it is still usable with other
+  `twm`-like programs, especially those supporting M4 pre-processing
+  (for `twm` itself it would be necessary to use M4's include file
+  mechanisms to keep `ctwm`-only configuration in a separate file).
+  Note that `ctwm` will fall back to reading `.twmrc`.
 
 TWM_VERSION::
-  Tells which ctwm version is running in the form of a floating
-  point number.
+  Tells which ctwm version is running.  It is in the form of:
+
+------
+VERSION_MAJOR "." VERSION_MINOR "." VERSION_PATCH
+------
+
+  Example:  "4.1.0"
 
 CTWM_VERSION_MAJOR::
 CTWM_VERSION_MINOR::
 CTWM_VERSION_PATCH::
 CTWM_VERSION_ADDL::
   Gives the ctwm version split out.  e.g., for a version like
-  "3.8.2-beta1", the `_MAJOR` will be "3", `_MINOR` "8", `_PATCH` "2",
+  "4.0.1-beta1", the `_MAJOR` will be "4", `_MINOR` "0", `_PATCH` "1",
   and `_ADDL` "-beta1".  Final releases will generally have an empty
   `CTWM_VERSION_ADDL`; it's mostly meaningful in dev and betas.  For
-  comparison, in this situation, TWM_VERSION will be "3.8.2".
+  comparison, in this example, TWM_VERSION will be "4.0.1".
 +
 The `CTWM_VERSION_*` variables first appeared in 4.0.0.
 
@@ -2856,7 +2864,7 @@ f.setbuttonsstate::
 f.setmapstate::
   Set the WorkSpace manager in map state.
 
-f.setpriority "`value`"::
+f.setpriority `value`::
   Set the window's priority to `value` (enclosed between double quotes).
   If `value` is directly followed by `<` or `b`, the window is
   placed below other windows of the given priority. Otherwise it is placed
