@@ -346,18 +346,19 @@ GetFont(MyFont *font)
 	                                    &def_string_return)) == NULL) {
 		fprintf(stderr, "Failed to get fontset \"%s\"\n", basename2);
 		free(basename2);
+		/* n.b.:  for now there will always be a DefaultFont! */
 		if(Scr->DefaultFont.basename) {
 			asprintf(&basename2, "%s", Scr->DefaultFont.basename);
 		} else {
 			asprintf(&basename2, deffontname, Scr->xres, Scr->yres);
 		}
 		fprintf(stderr, "trying default fontset \"%s\"\n", basename2);
-		if((font->font_set = XCreateFontSet(dpy, deffontname,
+		if((font->font_set = XCreateFontSet(dpy, basename2,
 		                                    &missing_charset_list_return,
 		                                    &missing_charset_count_return,
 		                                    &def_string_return)) == NULL) {
 			fprintf(stderr, "%s:  unable to open fonts \"%s\" or \"%s\"\n",
-			        ProgramName, font->basename, deffontname);
+			        ProgramName, font->basename, basename2);
 			exit(1);
 		}
 	}
