@@ -3,33 +3,39 @@
 #
 # Tested on NetBSD, FreeBSD, and macos with pkgsrc bmake (and bootstrap-mk-files)
 #
-# It is assumed libjpeg is available (in EXTLIBS).
+# It is assumed libjpeg is available (in EXTLIBS, which defaults to PKGDIR).
+# (See more in the notes below.)
 #
 # Needs asciidoc and xmlto for manual page generation.
 #
-# BUILD_DIR=build-$(uname -s)-$(uname -m)
+# BUILD_DIR=build-$(uname -s)-$(uname -p)
 # mkdir -p ${BUILD_DIR}
-# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make PREFIX=/usr/pkg LDSTATIC=-static obj
-# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make PREFIX=/usr/pkg LDSTATIC=-static all
+# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make -j 4 obj
+# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make -j 4 dependall
+# su root -c 'MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make -j 4 install'
+#
 #
 # Notes:
 #
-# Don't use "make depend" on FreeBSD, and either do the "obj" step separately,
-# or, better yet, put "WITH_AUTO_OBJ=yes" on the command line (or in the
-# environment).
+# Don't use "make depend" (or "dependall") on FreeBSD, and either do the "obj"
+# step separately, or, better yet, put "WITH_AUTO_OBJ=yes" on the command line
+# (or in the environment).
 #
-# You can use "make obj dependall" on NetBSD and with pkgsrc bmake.
+# MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} WITH_AUTO_OBJ=yes make -j 4 all
+# su root -c 'MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} make -j 4 install'
+#
+# You can combine "make obj dependall" on NetBSD, and on any with pkgsrc bmake.
 #
 # PREFIX defaults to ${X11ROOTDIR}, which should be defined if your system has
 # <bsd.x11.mk>, and in this case the default plan is to install there as well.
 #
-# X11ROOTDIR defaults to ${PREFIX} in case <bsd.x11.mk> is not found.
+# X11ROOTDIR is searched for in case <bsd.x11.mk> is not found.
 #
-# So, one of one of PREFIX or X11ROOTDIR must be defined if there is no
-# <bsd.x11.mk>.
+# EXTLIBS defaults to ${PKGDIR}, if that is defined, else a "package" directory
+# is searched for.  EXTLIBS should contain libraries and headers for libjpeg in
+# the "normal" subdirectories, i.e. .../lib and .../include.
 #
-# EXTLIBS defaults to ${PREFIX}, if that is defined, else "/usr/pkg"
-#
+# DESTDIR installs are not supported.
 
 .include <bsd.own.mk>
 
@@ -53,7 +59,6 @@ SRCS+=	event_handlers.c
 SRCS+=	event_names.c
 SRCS+=	event_utils.c
 SRCS+=	ewmh.c
-SRCS+=	ewmh_atoms.c
 SRCS+=	functions.c
 SRCS+=	functions_captive.c
 SRCS+=	functions_icmgr_wsmgr.c
@@ -129,7 +134,19 @@ ${PROG}: all-ext .WAIT
 STRIPFLAG =	# empty, for bootstrap-mk-files and older bmakes
 STRIP =		# empty, for bootstrap-mk-files and older bmakes
 
-EXTLIBS?=	${PREFIX:U/usr/pkg}
+.if !defined(PKGDIR)
+. if exists(/usr/pkg)
+PKGDIR=		/usr/pkg
+. elif exists(/opt/pkg)
+PKGDIR=		/opt/pkg
+. elif exists(/usr/local/lib)
+PKGDIR= 	/usr/local
+. else
+PKGDIR= 	/usr
+. endif
+.endif
+
+EXTLIBS?=	${PKGDIR}
 
 .if defined(CPPFLAGS)
 CPPFLAGS+=	-I${EXTLIBS}/include
@@ -140,14 +157,6 @@ LDFLAGS+=	-L${EXTLIBS}/lib
 . if empty(LDSTATIC)
 LDFLAGS+=	-Wl,-rpath,${EXTLIBS}/lib
 . endif
-
-.if defined(PREFIX)
-# note: must define both in case <bsd.x11.mk> does not exist
-BINDIR=		${PREFIX}/bin
-X11BINDIR=	${PREFIX}/bin
-MANDIR=		${PREFIX}/${PKGMANDIR:Ushare/man}
-X11MANDIR=	${PREFIX}/${PKGMANDIR:Ushare/man}
-.endif
 
 # Build documentation files
 DOC_FILES=README.html CHANGES.html
@@ -171,10 +180,12 @@ docs_clean doc_clean:
 # Generated source files
 #
 GENSRCS+=	ctwm_atoms.c
+GENSRCS+=	ewmh_atoms.c
 GENSRCS+=	deftwmrc.c
 GENSRCS+=	version.c
 
 SRCS+=		${GENSRCS}
+DPSRCS+=	${GENSRCS}
 
 GENHDRS+=	ctwm_config.h
 GENHDRS+=	gram.tab.h
@@ -237,21 +248,25 @@ CFLAGS+=	${CTWM_FLAGS}
 
 YHEADER=1
 
-# for non-NetBSD bmakes
-HOST_SH?=	${SHELL}
+# for non-NetBSD bmakes -- this must be an absolute path to a Bourne shell
+# interpreter
+#
+HOST_SH?=	/bin/sh
 
 # xxx this is stupid, but avoids patching a bunch of files with:
 #
 #	s/gram.tab.h/gram.h/
 #
 gram.tab.h: Makefile
-	ln -fs gram.h $@
+	ln -fhs gram.h $@
 
 CLEANFILES+=	gram.tab.h
 
 # xxx this is also stupid, but avoids patching a bunch of files to remove it
 #
-ctwm_config.h:
+# hmmmm....  I suppose we could put some of the CTWM_FLAGS -DFOO things into it
+#
+ctwm_config.h: Makefile
 	rm -f $@
 	touch $@
 
@@ -277,7 +292,7 @@ deftwmrc.c: tools/mk_deftwmrc.sh system.ctwmrc
 	${_MKTARGET_CREATE}
 	${SCRIPT_ENV} ${HOST_SH} ${.ALLSRC} > $@
 
-CLEANFILES+=	${.OBJDIR}/deftwmrc.c
+CLEANFILES+=	deftwmrc.c
 
 event_names_table.h: tools/mk_event_names.sh event_names.list
 	${_MKTARGET_CREATE}
@@ -434,16 +449,13 @@ CLEANFILES+= ctwm.1.docbook ctwm.1
 
 .-include <bsd.x11.mk>
 
-PREFIX?=	${X11ROOTDIR}
-X11ROOTDIR?=	${PREFIX}
-
-.if ${PREFIX} == ${X11ROOTDIR}
+.if !defined(PREFIX) && defined(X11ROOTDIR)
 XPMDIR?=	${X11ROOTDIR}/include/X11/pixmaps/ctwm
-.else
-XPMDIR=		${PREFIX}/share/ctwm/images
 .endif
 
-.if !defined(X11ROOTDIR)
+.if !defined(X11ROOTDIR)	# i.e. no <bsd.x11.mk>
+
+# herein systems without <bsd.x11.mk> are handled
 
 . if exists(/opt/X11)
 X11ROOTDIR=	/opt/X11
@@ -451,7 +463,16 @@ X11ROOTDIR=	/opt/X11
 X11ROOTDIR=	/usr/X11
 . elif exists(/usr/X11R7)
 X11ROOTDIR=	/usr/X11R7
+. else
+.  if ${.MAKE.OS} == "FreeBSD"
+X11ROOTDIR=	/usr/local
+.  else
+# xxx true for most/all GNU/Linux these days?
+X11ROOTDIR=	/usr
+.  endif
 . endif
+
+PREFIX?=	${X11ROOTDIR}
 
 X11INCDIR?=	${X11ROOTDIR}/include
 
@@ -464,18 +485,49 @@ LDFLAGS+=	-L${X11USRLIBDIR}
 LDFLAGS+=	-Wl,-rpath,${X11USRLIBDIR}
 . endif
 
-X11BINDIR?=	${X11ROOTDIR}/bin
-X11MANDIR?=	${X11ROOTDIR}/man
-
 .endif	# !defined(X11ROOTDIR)
+
+.if ${.MAKE.OS} == "FreeBSD"
+# N.B.:  FreeBSD does something really stupid and includes the prefix of the
+# section subdirectory as part of MANDIR!!!
+FBSDMANDIR=	/man
+.endif
+
+# Note that on BSD systems when doing in-tree builds <bsd.prog.mk> assumes
+# BINDIR is defined, but nothing in it, nor in <bsd.own.mk>, etc., defines a
+# default -- for in-tree builds BINDIR is expected to come from the parent
+# directory's "Makefile.inc".
+#
+.if defined(PREFIX)
+DEBUGDIR=	${PREFIX}/libdata/debug
+BINDIR=		${PREFIX}/bin
+MANDIR=		${PREFIX}/${PKGMANDIR:Ushare/man}${FBSDMANDIR}
+XPMDIR?=	${PREFIX}/share/ctwm/images
+.else
+DEBUGDIR=	${X11ROOTDIR}/libdata/debug
+BINDIR=		${X11ROOTDIR}/bin
+MANDIR=		${X11ROOTDIR}/man${FBSDMANDIR}
+XPMDIR?=	${X11ROOTDIR}/share/ctwm/images
+.endif
 
 .include <bsd.prog.mk>
 .include <bsd.files.mk>
 .include <bsd.subdir.mk>
 
+# XXX pkgsrc's pkgtools/bootstrap-mk-files is a horrible messy hack that's
+# partly made of very old versions of the NetBSD mk files, plus some hacks.
+#
+# One such hack is that its <bsd.prog.mk> supports PROGS, but that was
+# implemented separately based loosely on suggestions from NetBSD, and as just
+# it missed out defining OBJS.
+#
+.if !defined(OBJS)
+OBJS=		${OBJS.${PROG}}
+.endif
+
 #
 # Local Variables:
 # eval: (make-local-variable 'compile-command)
-# compile-command: (concat "BUILD_DIR=build-$(uname -s)-$(uname -m); mkdir -p ${BUILD_DIR}; MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} PREFIX=/usr/pkg " (default-value 'compile-command) " LDSTATIC=-static obj dependall")
+# compile-command: (concat "BUILD_DIR=build-$(uname -s)-$(uname -p); mkdir -p ${BUILD_DIR}; MAKEOBJDIRPREFIX=$(pwd -P)/${BUILD_DIR} " (default-value 'compile-command) " -j 8 LDSTATIC=-static obj dependall")
 # End:
 #
