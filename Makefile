@@ -328,6 +328,11 @@ DPADD+=	${LIBJPEG}
 LDADD+=	-lXpm -lXmu -lXt -lSM -lICE -lXrandr -lXrender -lXext -lX11 -lxcb -lXau -lXdmcp
 DPADD+=	${LIBXPM} ${LIBXMU} ${LIBXT} ${LIBSM} ${LIBICE} ${LIBXRANDR} ${LIBXRENDER} ${LIBXEXT} ${LIBX11} ${LIBXCB} ${LIBXAU} ${LIBXDMCP}
 
+.if ${.MAKE.OS} == "Solaris"
+# for gethostbyname(), needed with USEM4
+LDADD+=	-lnsl
+.endif
+
 FILESDIR= ${XPMDIR}
 
 #xxx# FILES!= cd ${.CURDIR}/xpm && echo *.xpm
