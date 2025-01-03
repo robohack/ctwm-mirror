@@ -1213,7 +1213,13 @@ PaintTitle(TwmWindow *tmp_win)
 		             tmp_win->title, state, true, false);
 	}
 
-	/* Setup the X graphics context for the drawing */
+#if 0
+	fprintf(stderr, "PaintTitle: fore=0x%06lx, back=0x%06lx, c=%s, n='%.40s'\n",
+		tmp_win->title.fore, tmp_win->title.back,
+		tmp_win->class.res_name, tmp_win->name);
+#endif
+
+	/* Setup the title colors in the X graphics context for the drawing */
 	FB(tmp_win->title.fore, tmp_win->title.back);
 
 	/* And write in the name */

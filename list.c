@@ -188,6 +188,11 @@ void *LookPatternInNameList(name_list *list_head, const char *name)
  *  Outputs:
  *      ptr     - fill in the list value if the name was found
  *
+ * N.B.:  Note the ptr output is only set IFF the name was found -- the default
+ * color, though clearly associated with a list in the configuration file, is
+ * not stored in the name_list, so callers must take care to get the default
+ * value from wherever it is stored.
+ *
  ***********************************************************************
  */
 

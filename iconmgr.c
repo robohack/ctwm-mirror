@@ -1257,8 +1257,33 @@ DrawIconManagerIconName(TwmWindow *tmp_win)
 		PackIconManagers();
 	}
 
-	// Write in the title
+	/*
+	 * reset color(s)
+	 *
+	 * XXX this does not work here/yet....
+	 */
+	iconmanagerlist->cp.fore   = Scr->IconManagerC.fore;
+	iconmanagerlist->cp.back   = Scr->IconManagerC.back;
+	iconmanagerlist->highlight = Scr->IconManagerHighlight;
+
+	GetColorFromList(Scr->IconManagerFL, tmp_win->name, &tmp_win->class,
+			 &iconmanagerlist->cp.fore);
+	GetColorFromList(Scr->IconManagerBL, tmp_win->name, &tmp_win->class,
+			 &iconmanagerlist->cp.back);
+	GetColorFromList(Scr->IconManagerHighlightL, tmp_win->name, &tmp_win->class,
+			 &iconmanagerlist->highlight);
+	if(Scr->use3Diconmanagers) {
+		if(!Scr->BeNiceToColormap) {
+			GetShadeColors(&iconmanagerlist->cp);
+		}
+#if 0
+		&iconmanagerlist->iconifypm = Create3DIconManagerIcon(&iconmanagerlist->cp);
+#endif
+	}
+
 	FB(iconmanagerlist->cp.fore, iconmanagerlist->cp.back);
+
+	// Write in the title
 
 	/* XXX This is a completely absurd way of writing this */
 	((Scr->use3Diconmanagers && (Scr->Monochrome != COLOR)) ?
