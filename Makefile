@@ -212,6 +212,8 @@ CTWMCONFIGDIR=	${X11ETCDIR}/ctwm
 FILES+=			system.ctwmrc
 FILESDIR_system.ctwmrc=	${CTWMCONFIGDIR}
 
+CSTD=		gnu99
+
 CTWM_FLAGS+=	-I${.CURDIR} -I${.CURDIR}/ext
 
 CTWM_FLAGS+=	-DPIXMAP_DIRECTORY=\"${XPMDIR}\"
@@ -523,6 +525,10 @@ XPMDIR?=	${X11ROOTDIR}/share/ctwm/images
 #
 .if !defined(OBJS)
 OBJS=		${OBJS.${PROG}}
+.endif
+
+.if empty(CFLAGS:M*-std=${CSTD}*)
+CFLAGS += -std=${CSTD}
 .endif
 
 #
