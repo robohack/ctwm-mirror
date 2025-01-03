@@ -224,13 +224,13 @@ CTWM_FLAGS+=	-DCAPTIVE	# captive.c et al
 CTWM_FLAGS+=	-DSESSION	# session.c
 CTWM_FLAGS+=	-DWINBOX
 
-CTWM_FLAGS+=	-DEWMH
-CTWM_FLAGS+=	-DJPEG		# needs libjpeg, of course
-CTWM_FLAGS+=	-DUSE_SYS_REGEX
-CTWM_FLAGS+=	-DXPM
-CTWM_FLAGS+=	-DXRANDR	# xrandr.c
+CTWM_FLAGS+=	-DEWMH		# ewmh.c ewmh_atoms.c
+CTWM_FLAGS+=	-DJPEG		# image_jpeg.c, needs -ljpeg, of course
+CTWM_FLAGS+=	-DUSE_SYS_REGEX # xxx should be the default, for POSIX 1003.1-2004 compat (or indeed SUSv2-1997!)
+CTWM_FLAGS+=	-DXPM		# image_xpm.c, uses -lXpm
+CTWM_FLAGS+=	-DXRANDR	# xrandr.c, uses -lXrandr
 
-CTWM_FLAGS+=	-DUSEM4
+CTWM_FLAGS+=	-DUSEM4		# parse_m4.c
 CTWM_FLAGS+=	-DM4CMD=\"${M4:Um4}\"
 
 # This .if is annoying, but some older systems (and modern FreeBSD) don't
