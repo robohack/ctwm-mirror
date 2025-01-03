@@ -1210,22 +1210,13 @@ apply_window_name(TwmWindow *win)
 		OtpRecomputePrefs(win);
 	}
 
-	SetupWindow(win, win->frame_x, win->frame_y,
-	            win->frame_width, win->frame_height, -1);
-
-	if(win->title_w) {
-		XClearArea(dpy, win->title_w, 0, 0, 0, 0, True);
-	}
-	if(Scr->AutoOccupy) {
-		WmgrRedoOccupation(win);
-	}
-
-#if 0
-	/* Experimental, not yet working. */
+	/* reset colors in case the window name changed */
 	{
 		ColorPair cp;
 		int f, b;
 
+		cp.fore = Scr->TitleC.fore;
+		cp.back = Scr->TitleC.back;
 		f = GetColorFromList(Scr->TitleForegroundL, win->name,
 		                     &win->class, &cp.fore);
 		b = GetColorFromList(Scr->TitleBackgroundL, win->name,
@@ -1236,6 +1227,8 @@ apply_window_name(TwmWindow *win)
 			}
 			win->title = cp;
 		}
+		cp.fore = Scr->BorderColorC.fore;
+		cp.back = Scr->BorderColorC.back;
 		f = GetColorFromList(Scr->BorderColorL, win->name,
 		                     &win->class, &cp.fore);
 		b = GetColorFromList(Scr->BorderColorL, win->name,
@@ -1247,6 +1240,8 @@ apply_window_name(TwmWindow *win)
 			win->borderC = cp;
 		}
 
+		cp.fore = Scr->BorderTileC.fore;
+		cp.back = Scr->BorderTileC.back;
 		f = GetColorFromList(Scr->BorderTileForegroundL, win->name,
 		                     &win->class, &cp.fore);
 		b = GetColorFromList(Scr->BorderTileBackgroundL, win->name,
@@ -1258,7 +1253,16 @@ apply_window_name(TwmWindow *win)
 			win->border_tile = cp;
 		}
 	}
-#endif
+
+	SetupWindow(win, win->frame_x, win->frame_y,
+	            win->frame_width, win->frame_height, -1);
+
+	if(win->title_w) {
+		XClearArea(dpy, win->title_w, 0, 0, 0, 0, True);
+	}
+	if(Scr->AutoOccupy) {
+		WmgrRedoOccupation(win);
+	}
 
 	/*
 	 * If we haven't set a separate icon name, we use the window name, so

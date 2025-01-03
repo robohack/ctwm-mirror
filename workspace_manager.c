@@ -1996,11 +1996,29 @@ WMapUpdateIconName(TwmWindow *win)
 void
 WMapRedrawName(VirtualScreen *vs, WinList *wl)
 {
-	ColorPair cp = wl->cp;
+	ColorPair cp;
+
+	/* Reset coloring for the window [xxx code shared with WMapAddWindowToWorkspace()] */
+	/* xxx this generally works, but sometimes not right away!?!?!? */
+	cp.back = wl->twm_win->title.back;
+	cp.fore = wl->twm_win->title.fore;
+	if(Scr->workSpaceMgr.windowcpgiven) {
+		cp.back = Scr->workSpaceMgr.windowcp.back;
+		GetColorFromList(Scr->workSpaceMgr.windowBackgroundL,
+		                 wl->twm_win->name, &wl->twm_win->class, &cp.back);
+		cp.fore = Scr->workSpaceMgr.windowcp.fore;
+		GetColorFromList(Scr->workSpaceMgr.windowForegroundL,
+		                 wl->twm_win->name, &wl->twm_win->class, &cp.fore);
+	}
+	if(Scr->use3Dwmap && !Scr->BeNiceToColormap) {
+		GetShadeColors(&cp);
+	}
 
 	if(Scr->ReverseCurrentWorkspace && wl->wlist == vs->wsw->currentwspc) {
 		InvertColorPair(&cp);
 	}
+
+	/* xxx note the colors above are looked up by window name, but the icon name is drawn */
 	WMapRedrawWindow(wl->w, wl->width, wl->height, cp, wl->twm_win->icon_name);
 }
 
@@ -2125,6 +2143,7 @@ WMapAddWindowToWorkspace(TwmWindow *win, WorkSpace *ws)
 	ColorPair cp;
 
 	/* Setup coloring for the window */
+	/* [xxx code shared with WMapRedrawName()] */
 	cp.back = win->title.back;
 	cp.fore = win->title.fore;
 	if(Scr->workSpaceMgr.windowcpgiven) {

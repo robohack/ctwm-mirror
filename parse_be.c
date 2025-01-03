@@ -1645,7 +1645,7 @@ do_var_savecolor(int key)
 }
 
 /*
- * assign_var_savecolor() traverse the var save color list placeing the pixels
+ * assign_var_savecolor() traverse the var save color list placing the pixels
  *                        in the root window property.
  */
 void

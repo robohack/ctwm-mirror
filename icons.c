@@ -1004,6 +1004,22 @@ PaintIcon(TwmWindow *tmp_win)
 		               &ink_rect, &logical_rect);
 		twidth = logical_rect.width;
 	}
+	icon->border        = Scr->IconBorderColor;
+	icon->iconc.fore    = Scr->IconC.fore;
+	icon->iconc.back    = Scr->IconC.back;
+	GetColorFromList(Scr->IconBorderColorL, tmp_win->name, &tmp_win->class,
+	                 &icon->border);
+	GetColorFromList(Scr->IconForegroundL, tmp_win->name, &tmp_win->class,
+	                 &icon->iconc.fore);
+	GetColorFromList(Scr->IconBackgroundL, tmp_win->name, &tmp_win->class,
+	                 &icon->iconc.back);
+	if(Scr->use3Diconmanagers && !Scr->BeNiceToColormap) {
+		GetShadeColors(&icon->iconc);
+	}
+	/*
+	 * xxx this does not seem to work:  the text box of the title and its
+	 * background are NOT (re-)colored correctly -- the first colors stick
+	 */
 	FB(icon->iconc.fore, icon->iconc.back);
 	XmbDrawString(dpy, icon->w, Scr->IconFont.font_set, Scr->NormalGC,
 	              x + ((mwidth - twidth) / 2) +

@@ -436,8 +436,9 @@ resize button), and `:question` (the question mark used for non-existent
 bitmap files).
 
 The following variables may be specified at the top of a ctwm startup
-file.  Lists of window name prefix strings are indicated by `win-list`.
-Optional arguments are shown in square brackets:
+file.  Lists of window name / window class extended regular
+expressions are indicated by `win-list`.  Optional arguments are shown
+in square brackets:
 
 AlwaysOnTop { `win-list` }::
   This variable specifies a list of windows (all windows if the list is defaulted)
@@ -547,8 +548,10 @@ BorderColor `string` [{ `wincolorlist` }]::
   all
   non-iconified windows, and may only be given within a `Color` or
   `Monochrome` list.  The optional `wincolorlist` specifies a list
-  of window and color name pairs for specifying particular border colors for
-  different types of windows.  For example:
+  of window name or class extended regular expressions and color name
+  pairs for specifying particular border colors for different types of
+  windows.
+  For example:
 +
 ------
 BorderColor "gray50"
