@@ -36,6 +36,10 @@
 # the "normal" subdirectories, i.e. .../lib and .../include.
 #
 # DESTDIR installs are not supported.
+#
+# N.B.:  The additional Makefile support in my fingerd repo can support DESTDIR
+# installs, as well as simplify a number of other build issues, including
+# setting compiler warnings, etc.
 
 .include <bsd.own.mk>
 
@@ -146,7 +150,7 @@ PKGDIR= 	/usr
 . endif
 .endif
 
-EXTLIBS?=	${PKGDIR}
+EXTLIBS?=	${PKGDIR}	# pathname prefix to required libraries (${PKGDIR})
 
 .if defined(CPPFLAGS)
 CPPFLAGS+=	-I${EXTLIBS}/include
@@ -203,7 +207,7 @@ PKG_SYSCONFSUBDIR?=	X11/ctwm
 PKG_SYSCONFBASEDIR?=	/etc
 PKG_SYSCONFDIR?=	${PKG_SYSCONFBASEDIR}/${PKG_SYSCONFSUBDIR}
 
-X11ETCDIR?=	${PKG_SYSCONFBASEDIR}/X11
+X11ETCDIR?=	${PKG_SYSCONFBASEDIR}/X11	# pathname to X11 etc files (/etc/X11)
 CTWMCONFIGDIR=	${X11ETCDIR}/ctwm
 
 # xxx CONFIGFILES is not (yet) supported by pkgsrc bootstrap-mk-files
@@ -253,7 +257,7 @@ YHEADER=1
 # for non-NetBSD bmakes -- this must be an absolute path to a Bourne shell
 # interpreter
 #
-HOST_SH?=	/bin/sh
+HOST_SH?=	/bin/sh		# path to a Bourne Shell interpreter (/bin/sh)
 
 # xxx this is stupid, but avoids patching a bunch of files with:
 #
@@ -479,13 +483,13 @@ X11ROOTDIR=	/usr
 .  endif
 . endif
 
-PREFIX?=	${X11ROOTDIR}
+PREFIX?=	${X11ROOTDIR}		# pathname prefix for installed files (X11ROOTDIR)
 
-X11INCDIR?=	${X11ROOTDIR}/include
+X11INCDIR?=	${X11ROOTDIR}/include	# location of X11 header files (X11ROOTDIR/include)
 
 CPPFLAGS+=	-I${X11INCDIR}
 
-X11USRLIBDIR?=	${X11ROOTDIR}/lib
+X11USRLIBDIR?=	${X11ROOTDIR}/lib	# location of X11 libraries (X11ROOTDIR/lib)
 
 LDFLAGS+=	-L${X11USRLIBDIR}
 . if empty(LDSTATIC)
@@ -535,6 +539,30 @@ OBJS=		${OBJS.${PROG}}
 .if empty(CFLAGS:M*-std=${CSTD}*)
 CFLAGS += -std=${CSTD}
 .endif
+
+#
+# "make help" support, inspired by Julio Merino
+#
+
+obj:	# make object directories (set MAKEOBJDIRPREFIX in env!)
+all:	# make all targets
+install:# install all targets
+
+# n.b.: those are tabs after the backslashes, and for "column -s"
+.PHONY: help
+help: # Shows interactive help.
+help: Makefile # Makefile.internal Makefile.inc Makefile.end
+#	@cat README.adoc
+	@echo
+	@echo "make variables (to be set on the command line):"
+	@echo
+	@sed -Ene 's/^([^# \	]{1,})[ \	]*\?=[^#]{1,}#[ \	]*(.*)$$/\1:\	\2/p' $> | column -s '	' -t | sort
+	@echo
+	@echo "make targets:"
+	@echo
+	@sed -Ene 's/^([^#: \	]{1,}):.*#(.*)$$/\1:\	\2/p' $> | column -s '	' -t | sort
+	@echo
+
 
 #
 # Local Variables:
