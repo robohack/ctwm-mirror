@@ -1350,7 +1350,7 @@ InitScreenInfo(int scrnum, Window croot, int crootx, int crooty,
 	// "courier*" must have the star(*) because it may need to match either
 	// "courier" or "courier 10 pitch", depending on which is available.
 	//
-#define DEFAULT_NICE_FONT "-*-bitstream charter-medium-r-normal--0-100-%d-%d-*-p-iso10646-1"
+#define DEFAULT_NICE_FONT "-*-bitstream charter-medium-r-normal--0-100-%d-%d-p-*-iso10646-1"
 #define DEFAULT_FAST_FONT "-*-courier*-medium-r-normal--0-100-%d-%d-m-*-iso10646-1"
 #define SETFONT(fld, var) asprintf(&scr->fld##Font.basename, DEFAULT_##var##_FONT, scr->xres, scr->yres)
 
